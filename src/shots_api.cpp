@@ -19,7 +19,7 @@
 int main(int argc, char **argv) {
 	crow::SimpleApp app;
 
-	CROW_ROUTE(app, "/shots/")
+	CROW_ROUTE(app, "/")
 		.methods("POST"_method, "OPTIONS"_method)
 		([](const crow::request& req) {
 			if (req.method == "OPTIONS"_method) {
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 				}
 
 				billiards::utils::DefaultResponse def_resp{
-					"Listed shots", true, "shots-infos",
+					"Listed shots", true, "shot-infos",
 					[&params, &layout](billiards::json::SaxWriter& writer) {
 						writer.begin_array();
 						billiards::shots::list_shots(

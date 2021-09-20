@@ -27,14 +27,24 @@ namespace billiards::shots {
 		}
 		const layout::LocatedBall& cue = *cue_ptr;
 
+		int shot_count = 0;
 		for (const auto& ball : layout.balls) {
 			if (ball.info.is_cue()) {
 				continue;
 			}
 
+			auto num_pockets = params.table.pockets.size();
 			for (int pocket = 0; pocket < 6; pocket++) {
 				auto info = std::make_shared<ShotInformation>();
 				info->shot.steps.emplace_back(new CueStep{0});
+
+				if (shot_count >= params.range_begin) {
+					receiver(info);
+				}
+				if (shot_count > params.range_end) {
+					return;
+				}
+				++shot_count;
 			}
 		}
 	}
@@ -43,3 +53,4 @@ namespace billiards::shots {
 
 
 #endif //IDEA_LIST_SHOTS_H
+
