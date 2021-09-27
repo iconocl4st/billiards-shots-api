@@ -2,12 +2,6 @@
 // Created by thallock on 9/17/21.
 //
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <pthread.h>
-#include <random>
-
 
 #include "common/3rd_party/crow_all.h"
 #include "common/utils/crow_common.h"
@@ -18,6 +12,8 @@
 
 int main(int argc, char **argv) {
 	crow::SimpleApp app;
+
+	DO_STATUS_ENDPOINT();
 
 	CROW_ROUTE(app, "/")
 		.methods("POST"_method, "OPTIONS"_method)
