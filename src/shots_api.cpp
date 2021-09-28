@@ -28,17 +28,17 @@ int main(int argc, char **argv) {
 					params.parse(value["params"]);
 				}
 
-				billiards::layout::Layout layout;
-				if (value.contains("layout") && value["layout"].is_object()) {
-					layout.parse(value["layout"]);
+				billiards::layout::Locations locations;
+				if (value.contains("locations") && value["locations"].is_object()) {
+					locations.parse(value["locations"]);
 				}
 
 				billiards::utils::DefaultResponse def_resp{
 					"Listed shots", true, "shot-infos",
-					[&params, &layout](billiards::json::SaxWriter& writer) {
+					[&params, &locations](billiards::json::SaxWriter& writer) {
 						writer.begin_array();
 						billiards::shots::list_shots(
-							params, layout,
+							params, locations,
 							[&writer](std::shared_ptr<const billiards::shots::ShotInformation> ptr) {
 								ptr->to_json(writer);
 							});
