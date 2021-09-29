@@ -41,7 +41,7 @@ namespace billiards::shots {
 	void list_shots(
 		const ShotQueryParams& params,
 		const layout::Locations& locations,
-		std::function<void(const std::shared_ptr<const ShotInformation>&)> receiver
+		std::function<void(std::shared_ptr<Shot>)> receiver
 	) {
 		int cue_index = locations.cue_ball_index();
 		if (cue_index < 0) {
@@ -63,16 +63,16 @@ namespace billiards::shots {
 
 			auto num_pockets = params.table.pockets.size();
 			for (int pocket = 0; pocket < num_pockets; pocket++) {
-				auto info = std::make_shared<ShotInformation>();
-				info->shot.steps.emplace_back(new CueStep{cue_index});
-				info->shot.steps.emplace_back(new StrikeStep{object_index});
-				info->shot.steps.emplace_back(new PocketStep{pocket});
-				if (!simple_shot_is_possible(params.table, locations, info->shot)) {
+				auto shot = std::make_shared<Shot>();
+				shot->steps.emplace_back(new CueStep{cue_index});
+				shot->steps.emplace_back(new StrikeStep{object_index});
+				shot->steps.emplace_back(new PocketStep{pocket});
+				if (!simple_shot_is_possible(params.table, locations, *shot)) {
 					continue;
 				}
 
 				if (shot_count >= params.range_begin) {
-					receiver(info);
+					receiver(shot);
 				}
 				if (shot_count > params.range_end) {
 					return;
