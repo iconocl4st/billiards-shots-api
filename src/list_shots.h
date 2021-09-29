@@ -41,7 +41,7 @@ namespace billiards::shots {
 	void list_shots(
 		const ShotQueryParams& params,
 		const layout::Locations& locations,
-		std::function<void(std::shared_ptr<Shot>)> receiver
+		const std::function<void(std::shared_ptr<Shot>)>& receiver
 	) {
 		int cue_index = locations.cue_ball_index();
 		if (cue_index < 0) {

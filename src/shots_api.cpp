@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 						writer.begin_array();
 						billiards::shots::list_shots(
 							params, locations,
-							[&writer](std::shared_ptr<billiards::shots::Shot> ptr) {
+							[&writer](const std::shared_ptr<billiards::shots::Shot>& ptr) {
 								ptr->to_json(writer);
 							});
 						writer.end_array();

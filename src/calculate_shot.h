@@ -84,9 +84,9 @@ namespace billiards::shots {
 		const config::Table& table,
 		const layout::Locations& locations,
 		ShotInformation& info,
-		std::shared_ptr<Destination> dest,
+		const std::shared_ptr<Destination>& dest,
 		size_t step_index,
-		std::shared_ptr<Destination> next_dest
+		const std::shared_ptr<Destination>& next_dest
 	) {
 		switch (dest->type) {
 			case dest_type::POCKET: {
@@ -121,7 +121,7 @@ namespace billiards::shots {
 				auto *target = next_dest->get_target();
 				switch (target->type) {
 					case target_type::GOAL_POST: {
-						auto *gp_target = (GoalPostTarget *) target;
+//						auto *gp_target = (GoalPostTarget *) target;
 						construct_ghost_ball_target(
 							geometry::MaybePoint{locations.balls[object_index].location},
 							(GoalPostTarget *) target,
@@ -143,7 +143,7 @@ namespace billiards::shots {
 		}
 	}
 
-	std::shared_ptr<Destination> construct_destination(std::shared_ptr<ShotStep> step, int index) {
+	std::shared_ptr<Destination> construct_destination(const std::shared_ptr<ShotStep>& step, int index) {
 		switch (step->type) {
 			case step_type::POCKET: {
 //				auto pocket_step = std::dynamic_pointer_cast<PocketStep>(step);
@@ -168,8 +168,8 @@ namespace billiards::shots {
 		const config::Table& table,
 		const layout::Locations& locations,
 		ShotInformation& info,
-		std::shared_ptr<CueStep> cue_step,
-		std::shared_ptr<Destination> next_dest,
+		const std::shared_ptr<CueStep>& cue_step,
+		const std::shared_ptr<Destination>& next_dest,
 		CueingInfo& cueing
 	) {
 		int cue_index = cue_step->cue_ball;
@@ -180,9 +180,8 @@ namespace billiards::shots {
 		switch (next_dest->type) {
 			case dest_type::POCKET: {
 				auto p_dest = std::dynamic_pointer_cast<PocketDestination>(next_dest);
-
 				throw std::runtime_error{"Implement me!"};
-			};
+			}
 			case dest_type::GHOST_BALL: {
 				auto p_dest = std::dynamic_pointer_cast<GhostBallDestination>(next_dest);
 
@@ -228,7 +227,7 @@ namespace billiards::shots {
 		info.destinations.reserve(num_steps - 1);
 
 		std::shared_ptr<Destination> next_dest{nullptr};
-		for (int i = num_steps - 1, d_index = 0; i > 0; i--, d_index++) {
+		for (int i = (int) num_steps - 1, d_index = 0; i > 0; i--, d_index++) {
 			auto current_step = info.shot.steps[i];
 			std::shared_ptr<Destination> current_dest = construct_destination(current_step, i);
 			assign_target(table, locations, info, current_dest, i,next_dest);
@@ -247,104 +246,6 @@ namespace billiards::shots {
 				throw std::runtime_error{"First step must be a cue"};
 		}
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//	std::shared_ptr<Destination> construct_strike_destination(
-//		const config::Table& table,
-//		const layout::Locations& locations,
-//		ShotInformation& info,
-//		std::shared_ptr<StrikeStep> step,
-//		size_t step_index,
-//		std::shared_ptr<Destination> target
-//	) {
-//		int struck_index = step->object_ball;
-//		if (struck_index < 0 || struck_index >= table.balls.size() || struck_index >= locations.balls.size()) {
-//			throw std::runtime_error{"Invalid index"};
-//		}
-//
-//		/////////////////////////////////////////////////////////////////////////
-//		/// Get Target...
-//		/////////////////////////////////////////////////////////////////////////
-//		Target *target = nullptr;
-//		switch (target->type) {
-//			case dest_type::GHOST_BALL: {
-//				auto next_dest = std::dynamic_pointer_cast<GhostBallDestination>(target);
-//				int object_index = next_dest->step->object_ball;
-//				if (object_index < 0 || object_index >= table.balls.size() || object_index >= locations.balls.size()) {
-//					throw std::runtime_error{"Invalid index"};
-//				}
-//
-//				const Point& object_location,
-//				const GoalPostTarget& target,
-//				const geometry::MaybeDouble cue_radius,
-//				const geometry::MaybeDouble obj_radius,
-//				GoalPostTarget& source
-//
-//				construct_ghost_ball_target(
-//					locations.balls[0].location,
-//					next_dest->target,
-//					geometry::MaybeDouble{table.balls[struck_index].radius},
-//					geometry::MaybeDouble{table.balls[object_index].radius},
-//					next_dest->target
-//				)
-//
-//
-//				target = (Target *)&next_dest->target;
-//				break;
-//			}
-//			case dest_type::POCKET: {
-//			}
-//			case dest_type::UNKNOWN:
-//			default:
-//				throw std::runtime_error{"Not implemented"};
-//		}
-//
-//		if (step_index <= 0) {
-//			throw std::runtime_error{"Strike steps cannot be first"};
-//		}
-//		auto previous_step = info.shot.steps[step_index - 1];
-//		/////////////////////////////////////////////////////////////////////////
-//		/// Get Destination...
-//		/////////////////////////////////////////////////////////////////////////
-//		switch (previous_step->type) {
-//			case dest_type::GHOST_BALL: {
-//				auto next_dest = std::dynamic_pointer_cast<GhostBallDestination>(target);
-//				auto dest = std::make_shared<GhostBallDestination>(step);
-//
-//				int cue_index = step->object_ball;
-//				if (cue_index < 0 || cue_index >= table.balls.size() || cue_index >= locations.balls.size()) {
-//					throw std::runtime_error{"Invalid index"};
-//				}
-//
-//				construct_ghost_ball_target(
-//					locations.balls[0].location,
-//					next_dest->target,
-//					geometry::MaybeDouble{table.balls[cue_index].radius},
-//					geometry::MaybeDouble{table.balls[obj_index].radius},
-//					dest->target
-//				)
-//			}
-//			case dest_type::POCKET: {
-//
-//			}
-//			case dest_type::UNKNOWN:
-//			default:
-//				throw std::runtime_error{"Not implemented"};
-//		}
-//	}
 }
 
 #endif //IDEA_CALCULATE_SHOT_H
