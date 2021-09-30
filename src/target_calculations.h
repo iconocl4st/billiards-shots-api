@@ -51,24 +51,43 @@ namespace billiards::shots {
 		const geometry::MaybePoint& source,
 		const geometry::MaybeDouble radius,
 		const config::Pocket& pocket,
-		GoalPostTarget& dest
+		const std::shared_ptr<GoalPostTarget>& dest
 	) {
-		dest.goal_post_1 = geometry::get_edge_point(
+		dest->goal_post_1 = geometry::get_edge_point(
 			source, pocket.outerSegment1, radius, pocket.outerSegment2);
-		dest.goal_post_2 = geometry::get_edge_point(
+		dest->goal_post_2 = geometry::get_edge_point(
 			source, pocket.outerSegment2, radius, pocket.outerSegment1);
+		dest->goal_post_center = (dest->goal_post_1 + dest->goal_post_2) / 2;
 	}
 
+	inline
 	void construct_ghost_ball_target(
 		const geometry::MaybePoint& object_location,
-		const GoalPostTarget* target,
+		const std::shared_ptr<GoalPostTarget>& target,
 		const geometry::MaybeDouble& cue_radius,
 		const geometry::MaybeDouble& obj_radius,
-		GoalPostTarget* source
+		const std::shared_ptr<GoalPostTarget>& source
 	) {
 		source->goal_post_1 = geometry::extend_line(target->goal_post_1, object_location, obj_radius + cue_radius);
 		source->goal_post_2 = geometry::extend_line(target->goal_post_2, object_location, obj_radius + cue_radius);
+		source->goal_post_center = geometry::extend_line(target->goal_post_center, object_location, obj_radius + cue_radius);
 	}
 
+	void calculate_rail_target(
+		const geometry::MaybePoint& source,
+		const geometry::MaybeDouble radius,
+		const config::Rail& rail,
+		const std::shared_ptr<GoalPostTarget>& dest
+	) {
+		dest->goal_post_1 = geometry::calculate_bank(
+			source, dest->goal_post_1,
+			rail.segment1, rail.segment2, rail.in, radius);
+		dest->goal_post_2 = geometry::calculate_bank(
+			source, dest->goal_post_2,
+			rail.segment1, rail.segment2, rail.in, radius);
+		dest->goal_post_center = geometry::calculate_bank(
+			source, dest->goal_post_center,
+			rail.segment1, rail.segment2, rail.in, radius);
+	}
 }
 #endif //IDEA_TARGET_CALCULATIONS_H

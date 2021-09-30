@@ -9,7 +9,7 @@
 
 namespace billiards::geometry {
 
-	inline
+	[[nodiscard]] inline
 	bool solve_edge_system(
 		const MaybePoint& w, const MaybeDouble& r,
 		MaybePoint& sol0, MaybePoint& sol1
@@ -60,6 +60,7 @@ namespace billiards::geometry {
 		return true;
 	}
 
+	[[nodiscard]] inline
 	MaybePoint get_edge_point(
 		const MaybePoint& obj_location, const MaybePoint& goal_post, const MaybeDouble radius,
 		const MaybePoint& inner
@@ -87,8 +88,22 @@ namespace billiards::geometry {
 		return MaybePoint{};
 	}
 
+	[[nodiscard]] inline
+	MaybePoint calculate_bank(
+		const MaybePoint& src, const MaybePoint& dst,
+		const MaybePoint& s1, const MaybePoint& s2,
+		const MaybePoint& in,
+		const MaybeDouble radius
+	) {
+		const auto rail_line = through(s1, s2);
+		const auto reflection = reflect(dst, rail_line);
+		const auto travel_line = through(src, reflection);
+		const auto bank_line = parallel_at(rail_line, s1 + in * radius);
+		return intersection(bank_line, travel_line);
+	}
 
-	inline
+
+	[[nodiscard]] inline
 	MaybePoint project_onto_segment(
 		const MaybePoint& l1,
 		const MaybePoint& l2,
@@ -100,7 +115,7 @@ namespace billiards::geometry {
 		return l1 + diff * t2;
 	}
 
-	inline
+	[[nodiscard]] inline
 	MaybeDouble distance_to_segment(
 		const MaybePoint& l1,
 		const MaybePoint& l2,
@@ -109,17 +124,17 @@ namespace billiards::geometry {
 		return (p - project_onto_segment(l1, l2, p)).norm();
 	}
 
-	inline
+	[[nodiscard]] inline
 	MaybeDouble determinant(const MaybePoint& p1, const MaybePoint& p2) {
 		return p1.x * p2.y - p1.y * p2.x;
 	}
 
-	inline
+	[[nodiscard]] inline
 	MaybeBool is_to_the_right_of(const MaybePoint& p1, const MaybePoint& p2) {
 		return determinant(p1, p2) < 0;
 	}
 
-	inline
+	[[nodiscard]] inline
 	MaybeBool triangle_contains2(
 		const MaybePoint& v1,
 		const MaybePoint& v2,

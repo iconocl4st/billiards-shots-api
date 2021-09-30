@@ -7,11 +7,13 @@
 
 #include "common/shots/ShotInformation.h"
 #include "common/shots/Locations.h"
+#include "common/shots/shot_helpers.h"
 #include "common/config/Table.h"
 #include "target_calculations.h"
 
 namespace billiards::shots {
 
+	inline
 	int determine_exiting_ball_index(ShotInformation& info, size_t index) {
 		auto step = info.shot.steps[index];
 		switch (step->type) {
@@ -37,6 +39,7 @@ namespace billiards::shots {
 		}
 	}
 
+	inline
 	geometry::Point determine_source(const layout::Locations& locations, ShotInformation& info, size_t index) {
 		if (index < 0) {
 			throw std::runtime_error{"A ball must be in motion..."};
@@ -45,19 +48,11 @@ namespace billiards::shots {
 		switch (previous->type) {
 			case step_type::STRIKE: {
 				auto prev = std::dynamic_pointer_cast<StrikeStep>(previous);
-				auto ball_index = prev->object_ball;
-				if (ball_index < 0 || ball_index >= locations.balls.size()) {
-					throw std::runtime_error{"Invalid index"};
-				}
-				return locations.balls[ball_index].location;
+				return locations.get_ball_location(prev->object_ball);
 			}
 			case step_type::CUE: {
 				auto prev = std::dynamic_pointer_cast<CueStep>(previous);
-				auto ball_index = prev->cue_ball;
-				if (ball_index < 0 || ball_index >= locations.balls.size()) {
-					throw std::runtime_error{"Invalid index"};
-				}
-				return locations.balls[ball_index].location;
+				return locations.get_ball_location(prev->cue_ball);
 			}
 			case step_type::KISS:
 			case step_type::RAIL:
@@ -71,63 +66,62 @@ namespace billiards::shots {
 		}
 	}
 
-	template<class DestType, class StepType>
-	std::shared_ptr<StepType> get_step(ShotInformation& info, DestType dest) {
-		const int step_index = dest.step_index;
-		if (step_index < 0 || step_index >= info.shot.steps.size()) {
-			throw std::runtime_error{"Invalid index"};
-		}
-		return std::dynamic_pointer_cast<StepType>(info.shot.steps[step_index]);
-	}
+//	template<class StepType>
+//	std::shared_ptr<StepType> get_step(ShotInformation& info, const Destination& dest) {
+//		const int step_index = dest.step_index;
+//		if (step_index < 0 || step_index >= info.shot.steps.size()) {
+//			throw std::runtime_error{"Invalid index"};
+//		}
+//		return std::dynamic_pointer_cast<StepType>(info.shot.steps[step_index]);
+//	}
 
+	inline
 	void assign_target(
 		const config::Table& table,
 		const layout::Locations& locations,
 		ShotInformation& info,
-		const std::shared_ptr<Destination>& dest,
+		Destination& dest,
 		size_t step_index,
-		const std::shared_ptr<Destination>& next_dest
+		const Destination* next_dest
 	) {
-		switch (dest->type) {
-			case dest_type::POCKET: {
-				auto pocket_dest = std::dynamic_pointer_cast<PocketDestination>(dest);
-				int pocket_index = get_step<PocketDestination, PocketStep>(info, *pocket_dest)->pocket;
-				if (pocket_index < 0 || pocket_index >= table.pockets.size()) {
-					throw std::runtime_error{"Invalid index"};
-				}
-				if (step_index <= 0) {
-					throw std::runtime_error{"A pocket cannot be first."};
-				}
+		if (step_index <= 0) {
+			throw std::runtime_error{"The first step does not have a target."};
+		}
+
+		switch (info.get_shot_type(dest)) {
+			case step_type::POCKET: {
+				const std::shared_ptr<PocketStep>& pocket_step = info.get_typed_step<PocketStep>(dest);
+				int pocket_index = pocket_step->pocket;
 				int sunk_ball = determine_exiting_ball_index(info, step_index - 1);
 				const geometry::Point source = determine_source(locations, info, step_index - 1);
+				std::shared_ptr<GoalPostTarget> target = std::make_shared<GoalPostTarget>();
+				dest.target = std::dynamic_pointer_cast<Target>(target);
 				orient_pocket(
-					geometry::MaybePoint{source},
-					geometry::MaybeDouble{table.balls[sunk_ball].radius},
-					table.pockets[pocket_index],
-					pocket_dest->target
+					source,
+					get_ball_type(table, locations, sunk_ball)->radius,
+					table.get_pocket(pocket_index),
+					target
 				);
 				break;
 			}
-			case dest_type::GHOST_BALL: {
-				auto ghost_dest = std::dynamic_pointer_cast<GhostBallDestination>(dest);
-				int object_index = get_step<GhostBallDestination, StrikeStep>(info, *ghost_dest)->object_ball;
-				if (object_index < 0 || object_index >= table.pockets.size() || object_index >= locations.balls.size()) {
-					throw std::runtime_error{"Invalid index"};
-				}
-				if (step_index <= 0) {
-					throw std::runtime_error{"A ghost ball cannot be first."};
-				}
+			case step_type::STRIKE: {
+				const std::shared_ptr<StrikeStep>& strike_step = info.get_typed_step<StrikeStep>(dest);
+				int object_index = strike_step->object_ball;
 				int cue_index = determine_exiting_ball_index(info, step_index - 1);
-				auto *target = next_dest->get_target();
-				switch (target->type) {
+
+				std::shared_ptr<GoalPostTarget> target = std::make_shared<GoalPostTarget>();
+				dest.target = std::dynamic_pointer_cast<Target>(target);
+
+				const std::shared_ptr<Target> next_target = next_dest->target;
+				switch (next_target->type) {
 					case target_type::GOAL_POST: {
-//						auto *gp_target = (GoalPostTarget *) target;
+						const auto& next_goal_post = std::dynamic_pointer_cast<GoalPostTarget>(next_target);
 						construct_ghost_ball_target(
-							geometry::MaybePoint{locations.balls[object_index].location},
-							(GoalPostTarget *) target,
-							geometry::MaybeDouble{table.balls[cue_index].radius},
-							geometry::MaybeDouble{table.balls[object_index].radius},
-							&ghost_dest->target
+							locations.get_ball_location(object_index),
+							next_goal_post,
+							get_ball_type(table, locations, cue_index)->radius,
+							get_ball_type(table, locations, object_index)->radius,
+							target
 						);
 						break;
 					}
@@ -137,85 +131,118 @@ namespace billiards::shots {
 				}
 				break;
 			}
-			case dest_type::UNKNOWN:
+			case step_type::RAIL: {
+				const std::shared_ptr<RailStep>& rail_step = info.get_typed_step<RailStep>(dest);
+				int rail_index = rail_step->rail;
+				int bouncing_ball = determine_exiting_ball_index(info, step_index - 1);
+				const geometry::Point source = determine_source(locations, info, step_index - 1);
+				std::shared_ptr<GoalPostTarget> target = std::make_shared<GoalPostTarget>();
+				dest.target = std::dynamic_pointer_cast<Target>(target);
+				calculate_rail_target(
+					source,
+					get_ball_type(table, locations, bouncing_ball)->radius,
+					table.rail(rail_index),
+					target
+				);
+				break;
+			}
+			case step_type::UNKNOWN:
 			default:
 				throw std::runtime_error{"Not implemented"};
 		}
 	}
 
+	/*
+	inline
 	std::shared_ptr<Destination> construct_destination(const std::shared_ptr<ShotStep>& step, int index) {
 		switch (step->type) {
 			case step_type::POCKET: {
-//				auto pocket_step = std::dynamic_pointer_cast<PocketStep>(step);
 				auto pocket_dest = std::make_shared<PocketDestination>(index);
 				return std::dynamic_pointer_cast<Destination>(pocket_dest);
 			}
 			case step_type::STRIKE: {
-//				auto strike_step = std::dynamic_pointer_cast<StrikeStep>(step);
+				auto strike_dest = std::make_shared<GhostBallDestination>(index);
+				return std::dynamic_pointer_cast<Destination>(strike_dest);
+			}
+			case step_type::RAIL: {
 				auto strike_dest = std::make_shared<GhostBallDestination>(index);
 				return std::dynamic_pointer_cast<Destination>(strike_dest);
 			}
 			case step_type::KISS:
-			case step_type::RAIL:
+				throw std::runtime_error{"Implement me"};
 			case step_type::CUE:
 			case step_type::UNKNOWN:
 			default:
-				throw std::runtime_error{"Implement me"};
+				throw std::runtime_error{"Invalid destination"};
 		}
-	}
+	}*/
 
+	inline
 	void assign_cueing(
 		const config::Table& table,
 		const layout::Locations& locations,
 		ShotInformation& info,
 		const std::shared_ptr<CueStep>& cue_step,
-		const std::shared_ptr<Destination>& next_dest,
+		const Destination& next_dest,
 		CueingInfo& cueing
 	) {
 		int cue_index = cue_step->cue_ball;
-		if (cue_index < 0 || cue_index >= table.balls.size() || cue_index >= locations.balls.size()) {
-			throw std::runtime_error{"Invalid index"};
-		}
 
-		switch (next_dest->type) {
-			case dest_type::POCKET: {
-				auto p_dest = std::dynamic_pointer_cast<PocketDestination>(next_dest);
-				throw std::runtime_error{"Implement me!"};
-			}
-			case dest_type::GHOST_BALL: {
-				auto p_dest = std::dynamic_pointer_cast<GhostBallDestination>(next_dest);
+		// assign location
+		cueing.cue_location = locations.get_ball_location(cue_index);
 
-				int object_index = get_step<GhostBallDestination, StrikeStep>(info, *p_dest)->object_ball;
-				if (object_index < 0 || object_index >= table.balls.size() || object_index >= locations.balls.size()) {
-					throw std::runtime_error{"Invalid index"};
-				}
-
-				auto cut_angle_1 = get_target_cut(
-					locations.balls[cue_index].location,
-					locations.balls[object_index].location,
-					table.balls[object_index].radius,
-					p_dest->target.goal_post_1);
-				auto cut_angle_2 = get_target_cut(
-					locations.balls[cue_index].location,
-					locations.balls[object_index].location,
-					table.balls[object_index].radius,
-					p_dest->target.goal_post_2);
-
-				cueing.lower_cut_angle = cut_angle_1.min(cut_angle_2);
-				cueing.upper_cut_angle = cut_angle_1.max(cut_angle_2);
+		// assign precision
+		switch (next_dest.target->type) {
+			case target_type::GOAL_POST: {
+				const auto& goal_posts = std::dynamic_pointer_cast<GoalPostTarget>(next_dest.target);
 				cueing.precision = get_precision(
-					locations.balls[cue_index].location,
-					p_dest->target.goal_post_1,
-					p_dest->target.goal_post_2
+					locations.get_ball_location(cue_index),
+					goal_posts->goal_post_1,
+					goal_posts->goal_post_2
 				);
 				break;
 			}
-			case dest_type::UNKNOWN:
+			case target_type::UNKNOWN:
 			default:
-				throw std::runtime_error{"Unknown type"};
+				throw std::runtime_error{"Unknown target type"};
+		}
+
+		// Assign cuts...
+		switch (info.get_shot_type(next_dest)) {
+			case step_type::STRIKE: {
+				const auto& strike_step = info.get_typed_step<StrikeStep>(next_dest);
+				const auto& goal_posts = std::dynamic_pointer_cast<GoalPostTarget>(next_dest.target);
+				int object_index = strike_step->object_ball;
+				auto cut_angle_1 = get_target_cut(
+					locations.get_ball_location(cue_index),
+					locations.get_ball_location(object_index),
+					get_ball_type(table, locations, object_index)->radius,
+					goal_posts->goal_post_1);
+				auto cut_angle_2 = get_target_cut(
+					locations.get_ball_location(cue_index),
+					locations.get_ball_location(object_index),
+					get_ball_type(table, locations, object_index)->radius,
+					goal_posts->goal_post_2);
+
+				cueing.lower_cut_angle = cut_angle_1.min(cut_angle_2);
+				cueing.upper_cut_angle = cut_angle_1.max(cut_angle_2);
+				break;
+			}
+			case step_type::RAIL:
+			case step_type::POCKET:
+				// No cuts available...
+				break;
+			case step_type::KISS:
+				throw std::runtime_error{"Implement me"};
+			case step_type::CUE:
+				throw std::runtime_error{"Two cues in a row"};
+			default:
+			case step_type::UNKNOWN:
+				throw std::runtime_error{"Unknown step type"};
 		}
 	}
 
+	inline
 	void calculate_shot(
 		const config::Table& table,
 		const layout::Locations& locations,
@@ -226,20 +253,19 @@ namespace billiards::shots {
 		// when we have more? (I think bank shots will have more...)
 		info.destinations.reserve(num_steps - 1);
 
-		std::shared_ptr<Destination> next_dest{nullptr};
-		for (int i = (int) num_steps - 1, d_index = 0; i > 0; i--, d_index++) {
-			auto current_step = info.shot.steps[i];
-			std::shared_ptr<Destination> current_dest = construct_destination(current_step, i);
-			assign_target(table, locations, info, current_dest, i,next_dest);
-			next_dest = current_dest;
 
-			info.destinations[d_index] = current_dest;
+		Destination *next_dest = nullptr;
+		for (int i = (int) num_steps - 1; i > 0; i--) {
+			info.destinations.emplace_back(i);
+			assign_target(table, locations, info, info.destinations.back(), i, next_dest);
+			next_dest = &info.destinations.back();
 		}
+		std::reverse(info.destinations.begin(), info.destinations.end());
 
 		switch (info.shot.steps[0]->type) {
 			case step_type::CUE: {
 				auto cue_step = std::dynamic_pointer_cast<CueStep>(info.shot.steps[0]);
-				assign_cueing(table, locations, info, cue_step, next_dest, info.cueing);
+				assign_cueing(table, locations, info, cue_step, info.destinations[0], info.cueing);
 				break;
 			}
 			default:

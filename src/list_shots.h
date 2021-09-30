@@ -12,10 +12,12 @@
 #include "common/shots/ShotInformation.h"
 
 #include "./ShotQueryParams.h"
+#include "ShotsIterator.h"
 
 
 namespace billiards::shots {
 
+	/*
 	inline
 	bool simple_shot_is_possible(
 		const config::Table& table,
@@ -35,6 +37,11 @@ namespace billiards::shots {
 
 		auto dot = dir1.dot(dir2);
 		return dot > 0;
+	} */
+
+	[[nodiscard]] inline
+	bool shot_is_possible(const std::shared_ptr<Shot>& shot) {
+		return true;
 	}
 
 	inline
@@ -49,39 +56,26 @@ namespace billiards::shots {
 		}
 
 		int shot_count = 0;
-		int ball_index = 0;
-		const auto num_balls = locations.balls;
-
-		for (const auto& ball : locations.balls) {
-			const int object_index = ball_index++;
-			if (object_index == cue_index) {
+		ShotsIterator iterator;
+		iterator.assign(params.table, locations, params.step_types);
+		do {
+			auto shot = std::make_shared<Shot>();
+			for (const auto& it : iterator.children) {
+				shot->steps.emplace_back(it.create_step());
+			}
+			if (!shot_is_possible(shot)) {
 				continue;
 			}
-//			if (ball.ball.is_cue()) {
-//				continue;
-//			}
 
-			auto num_pockets = params.table.pockets.size();
-			for (int pocket = 0; pocket < num_pockets; pocket++) {
-				auto shot = std::make_shared<Shot>();
-				shot->steps.emplace_back(new CueStep{cue_index});
-				shot->steps.emplace_back(new StrikeStep{object_index});
-				shot->steps.emplace_back(new PocketStep{pocket});
-				if (!simple_shot_is_possible(params.table, locations, *shot)) {
-					continue;
-				}
-
-				if (shot_count >= params.range_begin) {
-					receiver(shot);
-				}
-				if (shot_count > params.range_end) {
-					return;
-				}
-				++shot_count;
+			if (shot_count >= params.range_begin) {
+				receiver(shot);
 			}
-		}
+			if (shot_count > params.range_end) {
+				return;
+			}
+			++shot_count;
+		} while (iterator.increment());
 	}
-
 }
 
 
