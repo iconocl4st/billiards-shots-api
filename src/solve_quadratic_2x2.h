@@ -5,7 +5,7 @@
 #ifndef IDEA_SOLVE_QUADRATIC_2X2_H
 #define IDEA_SOLVE_QUADRATIC_2X2_H
 
-#include "common/geometry/Maybe.h"
+#include "billiards_common/geometry/Maybe.h"
 
 namespace billiards::shots {
 

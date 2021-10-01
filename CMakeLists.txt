@@ -39,7 +39,7 @@ target_link_libraries(
 #		shots_api
 #
 #		PUBLIC
-#		$ENV{REPOS}/billiards-common/src
+#		$ENV{REPOS}/billiards-billiards_common/src
 #)
 #
 #

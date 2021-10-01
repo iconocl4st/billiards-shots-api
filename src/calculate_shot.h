@@ -5,10 +5,10 @@
 #ifndef IDEA_CALCULATE_SHOT_H
 #define IDEA_CALCULATE_SHOT_H
 
-#include "common/shots/ShotInformation.h"
-#include "common/shots/Locations.h"
-#include "common/shots/shot_helpers.h"
-#include "common/config/Table.h"
+#include "billiards_common/shots/ShotInformation.h"
+#include "billiards_common/shots/Locations.h"
+#include "billiards_common/shots/shot_helpers.h"
+#include "billiards_common/config/Table.h"
 #include "target_calculations.h"
 #include "ShotInfoParams.h"
 

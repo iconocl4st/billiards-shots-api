@@ -5,8 +5,8 @@
 #ifndef IDEA_TARGET_CALCULATIONS_H
 #define IDEA_TARGET_CALCULATIONS_H
 
-#include "common/shots/CueingInfo.h"
-#include "common/config/Pocket.h"
+#include "billiards_common/shots/CueingInfo.h"
+#include "billiards_common/config/Pocket.h"
 #include "shot_calculations.h"
 #include "basic_calculations.h"
 

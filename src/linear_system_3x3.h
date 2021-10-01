@@ -5,7 +5,7 @@
 #ifndef IDEA_LINEAR_SOLVE_H
 #define IDEA_LINEAR_SOLVE_H
 
-#include "common/geometry/Maybe.h"
+#include "billiards_common/geometry/Maybe.h"
 
 namespace billiards::shots::linear {
 

@@ -5,7 +5,7 @@
 #ifndef IDEA_SIMPLE_CALCULATIONS_H
 #define IDEA_SIMPLE_CALCULATIONS_H
 
-#include "common/geometry/geometry.h"
+#include "billiards_common/geometry/geometry.h"
 
 namespace billiards::geometry {
 

@@ -7,8 +7,8 @@
 
 #include <optional>
 
-#include "common/config/Table.h"
-#include "common/shots/Shot.h"
+#include "billiards_common/config/Table.h"
+#include "billiards_common/shots/Shot.h"
 
 namespace billiards::shots {
 

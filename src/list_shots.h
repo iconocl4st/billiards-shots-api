@@ -8,11 +8,11 @@
 #include <functional>
 #include <memory>
 
-#include "common/shots/Locations.h"
-#include "common/shots/ShotInformation.h"
-#include "common/shots/shot_is_possible.h"
+#include "billiards_common/shots/Locations.h"
+#include "billiards_common/shots/ShotInformation.h"
+#include "billiards_common/shots/shot_is_possible.h"
 
-#include "./calculate_shot.h"
+#include "calculate_shot.h"
 
 #include "ShotListParams.h"
 #include "ShotsIterator.h"

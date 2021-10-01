@@ -7,9 +7,9 @@
 
 #include <utility>
 
-#include "common/shots/ShotStep.h"
-#include "common/shots/Locations.h"
-#include "common/config/Table.h"
+#include "billiards_common/shots/ShotStep.h"
+#include "billiards_common/shots/Locations.h"
+#include "billiards_common/config/Table.h"
 
 namespace billiards::shots {
 

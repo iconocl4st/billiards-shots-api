@@ -5,8 +5,8 @@
 #ifndef IDEA_SHOT_CALCULATIONS_H
 #define IDEA_SHOT_CALCULATIONS_H
 
-#include "./basic_calculations.h"
-#include "./linear_system_2x2.h"
+#include "basic_calculations.h"
+#include "linear_system_2x2.h"
 
 namespace billiards::geometry {
 

@@ -5,7 +5,7 @@
 #ifndef IDEA_2_LINEAR_SYSTEM_H
 #define IDEA_2_LINEAR_SYSTEM_H
 
-#include "common/geometry/Maybe.h"
+#include "billiards_common/geometry/Maybe.h"
 
 namespace billiards::geometry {
 
