@@ -1,9 +1,9 @@
 //
-// Created by thallock on 9/17/21.
+// Created by thallock on 10/1/21.
 //
 
-#ifndef IDEA_SHOTQUERYPARAMS_H
-#define IDEA_SHOTQUERYPARAMS_H
+#ifndef IDEA_SHOTLISTPARAMS_H
+#define IDEA_SHOTLISTPARAMS_H
 
 #include <optional>
 
@@ -11,10 +11,11 @@
 
 namespace billiards::shots {
 
-	class ShotQueryParams : public json::Serializable {
+	class ShotListParams : public json::Serializable {
 	public:
 		std::optional<double> cut_tolerance;
 		config::Table table;
+		billiards::layout::Locations locations;
 		std::vector<step_type::ShotStepType> step_types;
 
 		int range_begin;
@@ -24,7 +25,7 @@ namespace billiards::shots {
 		// bool include_carems...
 		// bool include_banks...
 
-		ShotQueryParams()
+		ShotListParams()
 			: cut_tolerance{0.1}
 			, table{}
 			, step_types{step_type::CUE, step_type::STRIKE, step_type::POCKET}
@@ -32,7 +33,7 @@ namespace billiards::shots {
 			, range_end{50}
 		{}
 
-		~ShotQueryParams() override = default;
+		~ShotListParams() override = default;
 
 		void to_json(json::SaxWriter& writer) const override {
 			writer.begin_object();
@@ -43,7 +44,7 @@ namespace billiards::shots {
 			writer.field("begin", range_begin);
 			writer.field("end", range_end);
 			writer.end_object();
-			writer.key("step-types");
+			writer.key("step-wild-cards");
 			writer.begin_array();
 			for (const auto& type : step_types) {
 				writer.value(step_type::to_string(type));
@@ -52,20 +53,21 @@ namespace billiards::shots {
 			writer.end_object();
 		}
 
-		void parse(const nlohmann::json& value) override {
-			if (value.contains("range") && value["range"].is_object()) {
+		void parse(const nlohmann::json& value, json::ParseResult& status) override {
+			if (HAS_OBJECT(value, "range")) {
 				auto& range = value["range"];
-				if (range.contains("begin") && range["begin"].is_number()) {
+				if (HAS_NUMBER(range, "begin")) {
 					range_begin = range["begin"].get<int>();
 				}
-				if (range.contains("end") && range["end"].is_number()) {
+				if (HAS_NUMBER(range, "end")) {
 					range_end = range["end"].get<int>();
 				}
 			}
-			if (value.contains("table") && value["table"].is_object()) {
-				table.parse(value["table"]);
-			}
 
+			REQUIRE_CHILD(status, value, "table", table, "List parameters must have a table");
+			REQUIRE_CHILD(status, value, "locations", locations, "List parameters must have locations");
+
+			ENSURE_ARRAY(status, value, "step-wild-cards", "Must have step wild cards");
 			if (value.contains("step-types") && value["step-types"].is_array()) {
 				step_types.clear();
 				for (const auto& str : value["step-types"]) {
@@ -75,6 +77,4 @@ namespace billiards::shots {
 		}
 	};
 }
-
-
-#endif //IDEA_SHOTQUERYPARAMS_H
+#endif //IDEA_SHOTLISTPARAMS_H

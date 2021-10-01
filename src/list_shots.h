@@ -10,10 +10,13 @@
 
 #include "common/shots/Locations.h"
 #include "common/shots/ShotInformation.h"
+#include "common/shots/shot_is_possible.h"
+
 #include "./calculate_shot.h"
 
-#include "./ShotQueryParams.h"
+#include "ShotListParams.h"
 #include "ShotsIterator.h"
+
 
 
 namespace billiards::shots {
@@ -24,33 +27,35 @@ namespace billiards::shots {
 		const layout::Locations& locations,
 		const std::shared_ptr<Shot>& shot
 	) {
-		ShotInformation info;
-		info.shot = *shot;
-		calculate_shot(table, locations, info);
-		return info.is_possible(table, locations);
+		ShotInformation info{*shot};
+		ShotInfoParams params;
+		params.table = table;
+		params.locations = locations;
+		params.shot = *shot;
+		calculate_shot(params, info);
+		return shot_info_is_possible(table, locations, info);
 	}
 
 	inline
 	void list_shots(
-		const ShotQueryParams& params,
-		const layout::Locations& locations,
+		const ShotListParams& params,
 		const std::function<void(std::shared_ptr<Shot>)>& receiver
 	) {
-		int cue_index = locations.cue_ball_index();
+		int cue_index = params.locations.cue_ball_index();
 		if (cue_index < 0) {
 			return;
 		}
 
 		int shot_count = 0;
 		ShotsIterator iterator;
-		iterator.assign(params.table, locations, params.step_types);
+		iterator.assign(params.table, params.locations, params.step_types);
 		do {
 			auto shot = std::make_shared<Shot>();
 			for (const auto& it : iterator.children) {
 				shot->steps.emplace_back(it.create_step());
 			}
 
-			if (!shot_is_possible(params.table, locations, shot)) {
+			if (!shot_is_possible(params.table, params.locations, shot)) {
 				continue;
 			}
 

@@ -54,9 +54,9 @@ namespace billiards::shots {
 		const std::shared_ptr<GoalPostTarget>& dest
 	) {
 		dest->goal_post_1 = geometry::get_edge_point(
-			source, pocket.outerSegment1, radius, pocket.outerSegment2);
+			source, pocket.outer_segment_1, radius, pocket.outer_segment_2);
 		dest->goal_post_2 = geometry::get_edge_point(
-			source, pocket.outerSegment2, radius, pocket.outerSegment1);
+			source, pocket.outer_segment_2, radius, pocket.outer_segment_1);
 		dest->goal_post_center = (dest->goal_post_1 + dest->goal_post_2) / 2;
 	}
 

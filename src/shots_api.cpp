@@ -8,7 +8,6 @@
 #include "common/config/ports.h"
 
 #include "./list_shots.h"
-#include "./calculate_shot.h"
 
 
 int main(int argc, char **argv) {
@@ -25,22 +24,23 @@ int main(int argc, char **argv) {
 				try {
 					nlohmann::json value = nlohmann::json::parse(req.body);
 
-					billiards::shots::ShotQueryParams params;
-					if (value.contains("params") && value["params"].is_object()) {
-						params.parse(value["params"]);
+					billiards::shots::ShotListParams params;
+					billiards::json::ParseResult status;
+					if (HAS_OBJECT(value, "params")) {
+						params.parse(value["params"], status);
+					} else {
+						RETURN_ERROR("No params provided");
 					}
-
-					billiards::layout::Locations locations;
-					if (value.contains("locations") && value["locations"].is_object()) {
-						locations.parse(value["locations"]);
+					if (!status.success) {
+						RETURN_ERROR("Unable to parse params");
 					}
 
 					billiards::utils::DefaultResponse def_resp{
 						"Listed shots", true, "shots",
-						[&params, &locations](billiards::json::SaxWriter& writer) {
+						[&params](billiards::json::SaxWriter& writer) {
 							writer.begin_array();
 							billiards::shots::list_shots(
-								params, locations,
+								params,
 								[&writer](const std::shared_ptr<billiards::shots::Shot>& ptr) {
 									ptr->to_json(writer);
 								});
@@ -69,30 +69,20 @@ int main(int argc, char **argv) {
 				} else if (req.method == "POST"_method) {
 					nlohmann::json value = nlohmann::json::parse(req.body);
 
-//					billiards::shots::ShotQueryParams params;
-//					if (value.contains("params") && value["params"].is_object()) {
-//						params.parse(value["params"]);
-//					}
-
-					billiards::config::Table table;
-					if (value.contains("table") && value["table"].is_object()) {
-						table.parse(value["table"]);
+					billiards::shots::ShotInfoParams params;
+					billiards::json::ParseResult status;
+					if (HAS_OBJECT(value, "params")) {
+						params.parse(value["params"], status);
+					} else {
+						RETURN_ERROR("No params provided");
+					}
+					if (!status.success) {
+						RETURN_ERROR("Unable to parse params");
 					}
 
-					billiards::layout::Locations locations;
-					if (value.contains("locations") && value["locations"].is_object()) {
-						locations.parse(value["locations"]);
-					}
-
-					billiards::shots::Shot shot;
-					if (value.contains("shot") && value["shot"].is_object()) {
-						shot.parse(value["shot"]);
-					}
-
-					billiards::shots::ShotInformation info;
-					info.shot = shot;
+					billiards::shots::ShotInformation info{params.shot};
 					try {
-						calculate_shot(table, locations, info);
+						calculate_shot(params, info);
 					} catch (const std::exception &exc) {
 						std::cerr << exc.what();
 						RETURN_ERROR("Unable to calculate shot");

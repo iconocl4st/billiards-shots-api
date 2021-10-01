@@ -10,6 +10,7 @@
 #include "common/shots/shot_helpers.h"
 #include "common/config/Table.h"
 #include "target_calculations.h"
+#include "ShotInfoParams.h"
 
 namespace billiards::shots {
 
@@ -41,8 +42,7 @@ namespace billiards::shots {
 
 	inline
 	geometry::Point determine_source(
-		const config::Table& table,
-		const layout::Locations& locations,
+		const ShotInfoParams& params,
 		ShotInformation& info, size_t index) {
 		if (index < 0) {
 			throw std::runtime_error{"A ball must be in motion..."};
@@ -51,19 +51,19 @@ namespace billiards::shots {
 		switch (previous->type) {
 			case step_type::STRIKE: {
 				auto prev = std::dynamic_pointer_cast<StrikeStep>(previous);
-				return locations.get_ball_location(prev->object_ball);
+				return params.locations.get_ball_location(prev->object_ball);
 			}
 			case step_type::CUE: {
 				auto prev = std::dynamic_pointer_cast<CueStep>(previous);
-				return locations.get_ball_location(prev->cue_ball);
+				return params.locations.get_ball_location(prev->cue_ball);
 			}
 			case step_type::RAIL: {
 				auto prev = std::dynamic_pointer_cast<RailStep>(previous);
 				int rail_index = prev->rail;
 				int bouncing_ball = determine_exiting_ball_index(info, index - 1);
-				const auto rail = table.rail(rail_index);
-				const geometry::Point source = determine_source(table, locations, info, index - 1);
-				const auto radius = get_ball_type(table, locations, bouncing_ball)->radius;
+				const auto rail = params.table.rail(rail_index);
+				const geometry::Point source = determine_source(params, info, index - 1);
+				const auto radius = get_ball_type(params.table, params.locations, bouncing_ball)->radius;
 
 				const auto rail_line = geometry::through(rail.segment1, rail.segment2);
 				const auto reflection = geometry::reflect(source, rail_line);
@@ -94,11 +94,10 @@ namespace billiards::shots {
 
 	inline
 	void assign_target(
-		const config::Table& table,
-		const layout::Locations& locations,
+		const ShotInfoParams& params,
 		ShotInformation& info,
 		Destination& dest,
-		size_t step_index,
+		const size_t step_index,
 		const Destination* next_dest
 	) {
 		if (step_index <= 0) {
@@ -110,13 +109,13 @@ namespace billiards::shots {
 				const std::shared_ptr<PocketStep>& pocket_step = info.get_typed_step<PocketStep>(dest);
 				int pocket_index = pocket_step->pocket;
 				int sunk_ball = determine_exiting_ball_index(info, step_index - 1);
-				const geometry::Point source = determine_source(table, locations, info, step_index - 1);
+				const geometry::Point source = determine_source(params, info, step_index - 1);
 				std::shared_ptr<GoalPostTarget> target = std::make_shared<GoalPostTarget>();
 				dest.target = std::dynamic_pointer_cast<Target>(target);
 				orient_pocket(
 					source,
-					get_ball_type(table, locations, sunk_ball)->radius,
-					table.get_pocket(pocket_index),
+					get_ball_type(params.table, params.locations, sunk_ball)->radius,
+					params.table.get_pocket(pocket_index),
 					target
 				);
 				break;
@@ -134,10 +133,10 @@ namespace billiards::shots {
 					case target_type::GOAL_POST: {
 						const auto& next_goal_post = std::dynamic_pointer_cast<GoalPostTarget>(next_target);
 						construct_ghost_ball_target(
-							locations.get_ball_location(object_index),
+							params.locations.get_ball_location(object_index),
 							next_goal_post,
-							get_ball_type(table, locations, cue_index)->radius,
-							get_ball_type(table, locations, object_index)->radius,
+							get_ball_type(params.table, params.locations, cue_index)->radius,
+							get_ball_type(params.table, params.locations, object_index)->radius,
 							target
 						);
 						break;
@@ -152,9 +151,9 @@ namespace billiards::shots {
 				const std::shared_ptr<RailStep>& rail_step = info.get_typed_step<RailStep>(dest);
 				int rail_index = rail_step->rail;
 				int bouncing_ball = determine_exiting_ball_index(info, step_index - 1);
-				const geometry::Point source = determine_source(table, locations, info, step_index - 1);
-				const auto rail = table.rail(rail_index);
-				const auto radius = get_ball_type(table, locations, bouncing_ball)->radius;
+				const geometry::Point source = determine_source(params, info, step_index - 1);
+				const auto rail = params.table.rail(rail_index);
+				const auto radius = get_ball_type(params.table, params.locations, bouncing_ball)->radius;
 				std::shared_ptr<GoalPostTarget> target = std::make_shared<GoalPostTarget>();
 				dest.target = std::dynamic_pointer_cast<Target>(target);
 				const std::shared_ptr<Target> next_target = next_dest->target;
@@ -181,35 +180,9 @@ namespace billiards::shots {
 		}
 	}
 
-	/*
-	inline
-	std::shared_ptr<Destination> construct_destination(const std::shared_ptr<ShotStep>& step, int index) {
-		switch (step->type) {
-			case step_type::POCKET: {
-				auto pocket_dest = std::make_shared<PocketDestination>(index);
-				return std::dynamic_pointer_cast<Destination>(pocket_dest);
-			}
-			case step_type::STRIKE: {
-				auto strike_dest = std::make_shared<GhostBallDestination>(index);
-				return std::dynamic_pointer_cast<Destination>(strike_dest);
-			}
-			case step_type::RAIL: {
-				auto strike_dest = std::make_shared<GhostBallDestination>(index);
-				return std::dynamic_pointer_cast<Destination>(strike_dest);
-			}
-			case step_type::KISS:
-				throw std::runtime_error{"Implement me"};
-			case step_type::CUE:
-			case step_type::UNKNOWN:
-			default:
-				throw std::runtime_error{"Invalid destination"};
-		}
-	}*/
-
 	inline
 	void assign_cueing(
-		const config::Table& table,
-		const layout::Locations& locations,
+		const ShotInfoParams& params,
 		ShotInformation& info,
 		const std::shared_ptr<CueStep>& cue_step,
 		const Destination& next_dest,
@@ -218,14 +191,14 @@ namespace billiards::shots {
 		int cue_index = cue_step->cue_ball;
 
 		// assign location
-		cueing.cue_location = locations.get_ball_location(cue_index);
+		cueing.cue_location = params.locations.get_ball_location(cue_index);
 
 		// assign precision
 		switch (next_dest.target->type) {
 			case target_type::GOAL_POST: {
 				const auto& goal_posts = std::dynamic_pointer_cast<GoalPostTarget>(next_dest.target);
 				cueing.precision = get_precision(
-					locations.get_ball_location(cue_index),
+					params.locations.get_ball_location(cue_index),
 					goal_posts->goal_post_1,
 					goal_posts->goal_post_2
 				);
@@ -243,14 +216,14 @@ namespace billiards::shots {
 				const auto& goal_posts = std::dynamic_pointer_cast<GoalPostTarget>(next_dest.target);
 				int object_index = strike_step->object_ball;
 				auto cut_angle_1 = get_target_cut(
-					locations.get_ball_location(cue_index),
-					locations.get_ball_location(object_index),
-					get_ball_type(table, locations, object_index)->radius,
+					params.locations.get_ball_location(cue_index),
+					params.locations.get_ball_location(object_index),
+					get_ball_type(params.table, params.locations, object_index)->radius,
 					goal_posts->goal_post_1);
 				auto cut_angle_2 = get_target_cut(
-					locations.get_ball_location(cue_index),
-					locations.get_ball_location(object_index),
-					get_ball_type(table, locations, object_index)->radius,
+					params.locations.get_ball_location(cue_index),
+					params.locations.get_ball_location(object_index),
+					get_ball_type(params.table, params.locations, object_index)->radius,
 					goal_posts->goal_post_2);
 
 				cueing.lower_cut_angle = cut_angle_1.min(cut_angle_2);
@@ -272,11 +245,7 @@ namespace billiards::shots {
 	}
 
 	inline
-	void calculate_shot(
-		const config::Table& table,
-		const layout::Locations& locations,
-		ShotInformation& info
-	) {
+	void calculate_shot(const ShotInfoParams& params, ShotInformation& info) {
 		// TODO: Fit the Locations to the Table...
 		const auto num_steps = info.shot.steps.size();
 		// when we have more? (I think bank shots will have more...)
@@ -286,7 +255,7 @@ namespace billiards::shots {
 		Destination *next_dest = nullptr;
 		for (int i = (int) num_steps - 1; i > 0; i--) {
 			info.destinations.emplace_back(i);
-			assign_target(table, locations, info, info.destinations.back(), i, next_dest);
+			assign_target(params, info, info.destinations.back(), i, next_dest);
 			next_dest = &info.destinations.back();
 		}
 		std::reverse(info.destinations.begin(), info.destinations.end());
@@ -294,7 +263,7 @@ namespace billiards::shots {
 		switch (info.shot.steps[0]->type) {
 			case step_type::CUE: {
 				auto cue_step = std::dynamic_pointer_cast<CueStep>(info.shot.steps[0]);
-				assign_cueing(table, locations, info, cue_step, info.destinations[0], info.cueing);
+				assign_cueing(params, info, cue_step, info.destinations[0], info.cueing);
 				break;
 			}
 			default:
