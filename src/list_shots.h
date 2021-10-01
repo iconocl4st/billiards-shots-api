@@ -10,6 +10,7 @@
 
 #include "common/shots/Locations.h"
 #include "common/shots/ShotInformation.h"
+#include "./calculate_shot.h"
 
 #include "./ShotQueryParams.h"
 #include "ShotsIterator.h"
@@ -17,31 +18,16 @@
 
 namespace billiards::shots {
 
-	/*
-	inline
-	bool simple_shot_is_possible(
+	[[nodiscard]] inline
+	bool shot_is_possible(
 		const config::Table& table,
 		const layout::Locations& locations,
-		const Shot& shot
+		const std::shared_ptr<Shot>& shot
 	) {
-		// simple shot only...
-		auto *cs = (CueStep *) shot.steps[0].get();
-		auto *ss = (StrikeStep *) shot.steps[1].get();
-		auto *ps = (PocketStep *) shot.steps[2].get();
-		auto& cue_loc = locations.balls[cs->cue_ball].location;
-		auto& obj_loc = locations.balls[ss->object_ball].location;
-		auto poc_loc = table.pockets[ps->pocket].center();
-
-		auto dir1 = obj_loc - cue_loc;
-		auto dir2 = poc_loc - obj_loc;
-
-		auto dot = dir1.dot(dir2);
-		return dot > 0;
-	} */
-
-	[[nodiscard]] inline
-	bool shot_is_possible(const std::shared_ptr<Shot>& shot) {
-		return true;
+		ShotInformation info;
+		info.shot = *shot;
+		calculate_shot(table, locations, info);
+		return info.is_possible(table, locations);
 	}
 
 	inline
@@ -63,7 +49,8 @@ namespace billiards::shots {
 			for (const auto& it : iterator.children) {
 				shot->steps.emplace_back(it.create_step());
 			}
-			if (!shot_is_possible(shot)) {
+
+			if (!shot_is_possible(params.table, locations, shot)) {
 				continue;
 			}
 

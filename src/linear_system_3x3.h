@@ -9,6 +9,8 @@
 
 namespace billiards::shots::linear {
 
+	// TODO:
+	// provide a default_x and default_y for infinite solutions...
 // Could break this apart if we need to test if a triangle contains multiple points...
 	class LinearSystem {
 	public:

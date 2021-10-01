@@ -5,7 +5,7 @@
 #ifndef IDEA_TARGET_CALCULATIONS_H
 #define IDEA_TARGET_CALCULATIONS_H
 
-#include "common/shots/ShotStepInfo.h"
+#include "common/shots/CueingInfo.h"
 #include "common/config/Pocket.h"
 #include "shot_calculations.h"
 #include "basic_calculations.h"
@@ -75,17 +75,18 @@ namespace billiards::shots {
 
 	void calculate_rail_target(
 		const geometry::MaybePoint& source,
+		const std::shared_ptr<GoalPostTarget>& dest,
 		const geometry::MaybeDouble radius,
 		const config::Rail& rail,
-		const std::shared_ptr<GoalPostTarget>& dest
+		const std::shared_ptr<GoalPostTarget>& out
 	) {
-		dest->goal_post_1 = geometry::calculate_bank(
+		out->goal_post_1 = geometry::calculate_bank(
 			source, dest->goal_post_1,
 			rail.segment1, rail.segment2, rail.in, radius);
-		dest->goal_post_2 = geometry::calculate_bank(
+		out->goal_post_2 = geometry::calculate_bank(
 			source, dest->goal_post_2,
 			rail.segment1, rail.segment2, rail.in, radius);
-		dest->goal_post_center = geometry::calculate_bank(
+		out->goal_post_center = geometry::calculate_bank(
 			source, dest->goal_post_center,
 			rail.segment1, rail.segment2, rail.in, radius);
 	}

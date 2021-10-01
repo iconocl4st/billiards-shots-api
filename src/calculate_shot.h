@@ -40,7 +40,10 @@ namespace billiards::shots {
 	}
 
 	inline
-	geometry::Point determine_source(const layout::Locations& locations, ShotInformation& info, size_t index) {
+	geometry::Point determine_source(
+		const config::Table& table,
+		const layout::Locations& locations,
+		ShotInformation& info, size_t index) {
 		if (index < 0) {
 			throw std::runtime_error{"A ball must be in motion..."};
 		}
@@ -54,9 +57,23 @@ namespace billiards::shots {
 				auto prev = std::dynamic_pointer_cast<CueStep>(previous);
 				return locations.get_ball_location(prev->cue_ball);
 			}
+			case step_type::RAIL: {
+				auto prev = std::dynamic_pointer_cast<RailStep>(previous);
+				int rail_index = prev->rail;
+				int bouncing_ball = determine_exiting_ball_index(info, index - 1);
+				const auto rail = table.rail(rail_index);
+				const geometry::Point source = determine_source(table, locations, info, index - 1);
+				const auto radius = get_ball_type(table, locations, bouncing_ball)->radius;
+
+				const auto rail_line = geometry::through(rail.segment1, rail.segment2);
+				const auto reflection = geometry::reflect(source, rail_line);
+				// Could use reflection...
+				const auto travel_line = geometry::through(source, reflection);
+				const auto bank_line = geometry::parallel_at(rail_line, rail.segment1 + rail.in * radius);
+				const auto intersection = geometry::intersection(bank_line, travel_line);
+				return intersection.get();
+			}
 			case step_type::KISS:
-			case step_type::RAIL:
-				// Probably need to return an object...
 				throw std::runtime_error{"Not implemented"};
 			case step_type::POCKET:
 				throw std::runtime_error{"Pockets must be at the end"};
@@ -93,7 +110,7 @@ namespace billiards::shots {
 				const std::shared_ptr<PocketStep>& pocket_step = info.get_typed_step<PocketStep>(dest);
 				int pocket_index = pocket_step->pocket;
 				int sunk_ball = determine_exiting_ball_index(info, step_index - 1);
-				const geometry::Point source = determine_source(locations, info, step_index - 1);
+				const geometry::Point source = determine_source(table, locations, info, step_index - 1);
 				std::shared_ptr<GoalPostTarget> target = std::make_shared<GoalPostTarget>();
 				dest.target = std::dynamic_pointer_cast<Target>(target);
 				orient_pocket(
@@ -135,15 +152,27 @@ namespace billiards::shots {
 				const std::shared_ptr<RailStep>& rail_step = info.get_typed_step<RailStep>(dest);
 				int rail_index = rail_step->rail;
 				int bouncing_ball = determine_exiting_ball_index(info, step_index - 1);
-				const geometry::Point source = determine_source(locations, info, step_index - 1);
+				const geometry::Point source = determine_source(table, locations, info, step_index - 1);
+				const auto rail = table.rail(rail_index);
+				const auto radius = get_ball_type(table, locations, bouncing_ball)->radius;
 				std::shared_ptr<GoalPostTarget> target = std::make_shared<GoalPostTarget>();
 				dest.target = std::dynamic_pointer_cast<Target>(target);
-				calculate_rail_target(
-					source,
-					get_ball_type(table, locations, bouncing_ball)->radius,
-					table.rail(rail_index),
-					target
-				);
+				const std::shared_ptr<Target> next_target = next_dest->target;
+				switch (next_target->type) {
+					case target_type::GOAL_POST: {
+						const std::shared_ptr<GoalPostTarget> next_gp_target = std::dynamic_pointer_cast<GoalPostTarget>(next_target);
+						calculate_rail_target(
+							source,
+							next_gp_target,
+							radius,
+							rail,
+							target
+						);
+						break;
+					}
+					case target_type::UNKNOWN:
+						throw std::runtime_error{"Unknown target type"};
+				}
 				break;
 			}
 			case step_type::UNKNOWN:

@@ -6,6 +6,7 @@
 #define IDEA_SHOT_CALCULATIONS_H
 
 #include "./basic_calculations.h"
+#include "./linear_system_2x2.h"
 
 namespace billiards::geometry {
 
@@ -60,6 +61,10 @@ namespace billiards::geometry {
 		return true;
 	}
 
+
+	// Solves:
+	// norm(gp - x) = radius
+	// (x - obj) @ (x - gp) == 0
 	[[nodiscard]] inline
 	MaybePoint get_edge_point(
 		const MaybePoint& obj_location, const MaybePoint& goal_post, const MaybeDouble radius,
@@ -95,33 +100,43 @@ namespace billiards::geometry {
 		const MaybePoint& in,
 		const MaybeDouble radius
 	) {
+		const auto rail_line = geometry::through(s1, s2);
+		const auto reflection = geometry::reflect(dst, rail_line);
+		const auto travel_line = geometry::through(src, reflection);
+		const auto bank_line = geometry::parallel_at(rail_line, s1 + in * radius);
+		const auto intersection = geometry::intersection(bank_line, travel_line);
+		return intersection;
+	}
+
+
+	[[nodiscard]] inline
+	MaybePoint calculate_bank_2(
+		const MaybePoint& src, const MaybePoint& dst,
+		const MaybePoint& s1, const MaybePoint& s2,
+		const MaybePoint& in,
+		const MaybeDouble radius
+	) {
 		const auto rail_line = through(s1, s2);
-		const auto reflection = reflect(dst, rail_line);
-		const auto travel_line = through(src, reflection);
 		const auto bank_line = parallel_at(rail_line, s1 + in * radius);
-		return intersection(bank_line, travel_line);
-	}
 
+		// Solve:
+		// (x - src.x) / (y - src.y) == (x - dst.x) / (y - dst.y)
+		// a * x + b * y + c == 0
 
-	[[nodiscard]] inline
-	MaybePoint project_onto_segment(
-		const MaybePoint& l1,
-		const MaybePoint& l2,
-		const MaybePoint& p
-	) {
-		const auto diff = l2 - l1;
-		const auto t1 = (p - l1).dot(diff) / diff.norm2();
-		const auto t2 = t1.max(0).min(1);
-		return l1 + diff * t2;
-	}
+		// (y - dst.y) * (x - src.x) == alpha * (x - dst.x) * (y - src.y) is nonlinear
 
-	[[nodiscard]] inline
-	MaybeDouble distance_to_segment(
-		const MaybePoint& l1,
-		const MaybePoint& l2,
-		const MaybePoint& p
-	) {
-		return (p - project_onto_segment(l1, l2, p)).norm();
+		// (y - dst.y) * (x - src.x) == (x - dst.x) * (y - src.y)
+		// y * (x - src.x) - dst.y * (x - src.x) == x * (y - src.y) - dst.x * (y - src.y)
+		// y * x - y * src.x - dst.y * x + dst.y * src.x == x * y - x * src.y - dst.x * y + dst.x * src.y
+		// y * x - y * src.x - dst.y * x + dst.y * src.x - x * y + x * src.y + dst.x * y - dst.x * src.y == 0
+		// -y * src.x - dst.y * x + dst.y * src.x + x * src.y + dst.x * y - dst.x * src.y == 0
+		// [src.y - dst.y] * x - [src.x - dst.x] * y + [dst.y * src.x - dst.x * src.y] == 0
+
+		return solve_2x2(
+			rail_line.a, rail_line.b, rail_line.c,
+			src.y - dst.y, src.x - dst.x, dst.y * src.x - dst.x * src.y,
+			(src.x + dst.x) / 2, (src.y + dst.y) / 2
+		);
 	}
 
 	[[nodiscard]] inline
@@ -148,6 +163,64 @@ namespace billiards::geometry {
 		);
 	}
 
+	[[nodiscard]] inline
+	MaybePoint calculate_rolling_glance(
+		const MaybePoint& src,
+		const MaybeDouble& src_r,
+		const MaybePoint& obj,
+		const MaybeDouble& obj_r,
+		const MaybePoint& dst
+	) {
+		// Solve:
+		// (x - obj.x) ** 2 + (y - obj.y) ** 2 == (obj_r + src_r) ** 2
+		// p = {x, y}
+
+		// aim = p - src
+		// dir = dst - p
+		// tan = orthogonal aim at p
+		// tan @ tan == 1
+		//
+		// dir == 2.0 / 7 * tan + 5.0 / 7 * t * aim
+		// (t * aim - tan) @ tan == 0
+		// t == 1 / (aim @ tan)
+
+		// dir == 2.0 / 7 * tan + 5.0 / 7 * aim / (aim @ tan)
+		// dir == 2.0 / 7 * tan + 5.0 / 7 * aim / (aim @ tan)
+
+		// x, y
+		// aim = {src.y - y, x - src.x, y * (src.x - x) + x * (y - src.y)} // runs through x,y
+		// tan = {x - src.x, y - src.y, x * (src.x - x) + y * (src.y - y)} // runs though x, y; orthogonal to aim
+
+
+		// d = 2/7 * n + 5/7 * t * a
+		// (t * a - n) @ n == 0
+		// t * a @ n == n @ n
+
+
+		// a = p - src
+		// n @ a == 0
+		// n @ [p; 1] == 0
+		// d = 5/7 * n @ n + 1 / (n @ a) * a + 2/7 * n
+		// d = dst - p
+
+		// nx * (x - sx) + ny * (y - sy) == 0
+		// dst.x - p == 2/7 * nx + 5/7 * (nx ** 2 + ny ** 2 +  1 / (nx * (x - sx) + ny * (y - sy)) *
+		return MaybePoint{};
+	}
+
+	[[nodiscard]] inline
+	MaybePoint calculate_stun_glance(
+		const MaybePoint& src,
+		const MaybeDouble& src_r,
+		const MaybePoint& obj,
+		const MaybeDouble& obj_r,
+		const MaybePoint& dst
+	) {
+		// Solve:
+		// (x - obj.x) ** 2 + (y - obj.y) ** 2 == (obj_r + src_r) ** 2
+		// (x - dst.x) * (x - src.x) + (y - dst.y) * (y - src.y) == 0
+		return get_edge_point(src, obj, src_r + obj_r, dst);
+	}
 }
 
 

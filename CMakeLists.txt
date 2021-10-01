@@ -29,4 +29,26 @@ target_link_libraries(
 )
 
 
+#add_executable(
+#		test_shots
+#
+#		${CMAKE_CURRENT_SOURCE_DIR}/src/shots_api.cpp
+#)
+#
+#target_include_directories(
+#		shots_api
+#
+#		PUBLIC
+#		$ENV{REPOS}/billiards-common/src
+#)
+#
+#
+#target_link_libraries(
+#		shots_api
+#
+#		Threads::Threads
+#		${Boost_SYSTEM_LIBRARY}
+#)
+
+
 install(TARGETS shots_api DESTINATION /app)
