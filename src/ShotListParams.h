@@ -68,11 +68,9 @@ namespace billiards::shots {
 			REQUIRE_CHILD(status, value, "locations", locations, "List parameters must have locations");
 
 			ENSURE_ARRAY(status, value, "step-wild-cards", "Must have step wild cards");
-			if (value.contains("step-types") && value["step-types"].is_array()) {
-				step_types.clear();
-				for (const auto& str : value["step-types"]) {
-					step_types.emplace_back(step_type::from_string(str.get<std::string>()));
-				}
+			step_types.clear();
+			for (const auto& str : value["step-wild-cards"]) {
+				step_types.emplace_back(step_type::from_string(str.get<std::string>()));
 			}
 		}
 	};
