@@ -15,8 +15,9 @@ add_executable(
 
 target_include_directories(
 	shots_api
-	
+
 	PUBLIC
+	${PROJECT_SOURCE_DIR}/src
 	$ENV{REPOS}/billiards-common/src
 )
 
