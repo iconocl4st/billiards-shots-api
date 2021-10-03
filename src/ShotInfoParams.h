@@ -9,6 +9,7 @@
 
 #include "billiards_common/config/Table.h"
 #include "billiards_common/shots/Shot.h"
+#include "billiards_common/shots/Locations.h"
 
 namespace billiards::shots {
 
