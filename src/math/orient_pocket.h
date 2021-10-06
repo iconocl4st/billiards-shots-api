@@ -142,7 +142,7 @@ for idx, sol in enumerate(sols):
 		const double r2 = r * r;
 
 		if (v.dot(a) > 0) {
-			// TODO: Maybe it goes thought outer but not inner...
+			// TODO: Maybe it goes though outer but not inner...
 			return segment1 + v * r / std::sqrt(v2);
 		}
 

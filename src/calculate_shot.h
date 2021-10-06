@@ -5,6 +5,9 @@
 #ifndef IDEA_CALCULATE_SHOT_H
 #define IDEA_CALCULATE_SHOT_H
 
+
+
+#if 0
 #include "billiards_common/shots/ShotInformation.h"
 #include "billiards_common/shots/Locations.h"
 #include "billiards_common/shots/shot_helpers.h"
@@ -58,20 +61,6 @@ namespace billiards::shots {
 				return params.locations.get_ball_location(prev->cue_ball);
 			}
 			case step_type::RAIL: {
-				auto prev = std::dynamic_pointer_cast<RailStep>(previous);
-				int rail_index = prev->rail;
-				int bouncing_ball = determine_exiting_ball_index(info, index - 1);
-				const auto rail = params.table.rail(rail_index);
-				const geometry::Point source = determine_source(params, info, index - 1);
-				const auto radius = get_ball_type(params.table, params.locations, bouncing_ball)->radius;
-
-				const auto rail_line = geometry::through(rail.segment1, rail.segment2);
-				const auto reflection = geometry::reflect(source, rail_line);
-				// Could use reflection...
-				const auto travel_line = geometry::through(source, reflection);
-				const auto bank_line = geometry::parallel_at(rail_line, rail.segment1 + rail.in * radius);
-				const auto intersection = geometry::intersection(bank_line, travel_line);
-				return intersection.get();
 			}
 			case step_type::KISS:
 				throw std::runtime_error{"Not implemented"};
@@ -84,7 +73,7 @@ namespace billiards::shots {
 	}
 
 //	template<class StepType>
-//	std::shared_ptr<StepType> get_step(ShotInformation& info, const Destination& dest) {
+//	std::shared_ptr<StepType> get_step(ShotInformation& info, const StepInfo& dest) {
 //		const int step_index = dest.step_index;
 //		if (step_index < 0 || step_index >= info.shot.steps.size()) {
 //			throw std::runtime_error{"Invalid index"};
@@ -96,9 +85,9 @@ namespace billiards::shots {
 	void assign_target(
 		const ShotInfoParams& params,
 		ShotInformation& info,
-		Destination& dest,
+		StepInfo& dest,
 		const size_t step_index,
-		const Destination* next_dest
+		const StepInfo* next_dest
 	) {
 		if (step_index <= 0) {
 			throw std::runtime_error{"The first step does not have a target."};
@@ -185,7 +174,7 @@ namespace billiards::shots {
 		const ShotInfoParams& params,
 		ShotInformation& info,
 		const std::shared_ptr<CueStep>& cue_step,
-		const Destination& next_dest,
+		const StepInfo& next_dest,
 		CueingInfo& cueing
 	) {
 		int cue_index = cue_step->cue_ball;
@@ -252,7 +241,7 @@ namespace billiards::shots {
 		info.destinations.reserve(num_steps - 1);
 
 
-		Destination *next_dest = nullptr;
+		StepInfo *next_dest = nullptr;
 		for (int i = (int) num_steps - 1; i > 0; i--) {
 			info.destinations.emplace_back(i);
 			assign_target(params, info, info.destinations.back(), i, next_dest);
@@ -271,5 +260,7 @@ namespace billiards::shots {
 		}
 	}
 }
+
+#endif
 
 #endif //IDEA_CALCULATE_SHOT_H

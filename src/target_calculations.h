@@ -7,8 +7,8 @@
 
 #include "billiards_common/shots/CueingInfo.h"
 #include "billiards_common/config/Pocket.h"
-#include "shot_calculations.h"
-#include "basic_calculations.h"
+#include "shot_calculation/shot_calculations.h"
+#include "shot_calculation/basic_calculations.h"
 
 #include "math/orient_pocket.h"
 

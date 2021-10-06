@@ -25,13 +25,14 @@ def convert_powers(expr):
 x, y = var('x y') # Location of cue at glance
 # The object ball is centered at the origin
 dx, dy = var('dx dy') # Location of the desired cue destination
+ax, ay = var('ax ay') # Location of the current cue position
 r = var('r') # The sum of radaii of the cue and object balls
 alpha = var('alpha') # This will be set to 2/7
 
 # FOR TEST
 # ax = -1; ay = 1; dx = 2; dy = -1; r = 0.5
 
-# The tangent direction must be one of the following. Note, it will have magnitude 1.
+# The tangent direction must be one of the following. Note, it will have magnitude r.
 tx, ty = var('tx ty')
 
 # tx = y; ty = -x;
@@ -254,28 +255,6 @@ for denom, poly in [('dy', poly0), ('dx', poly1)]:
 .replace('(std::pow(ax, 2) + std::pow(ay, 2))', 'na2')
 
 
-def get_coefficients(expr):
-	c00 = 0; c10 = 0; c01 = 0; c20 = 0; c11 = 0; c02 = 0;
-	for term in expr.expand().operands():
-		if   term.degree(x) == 0 and term.degree(y) == 0:
-			c00 = c00 + term
-		elif term.degree(x) == 1 and term.degree(y) == 0:
-			c10 = c10 + term.coefficient(x)
-		elif term.degree(x) == 0 and term.degree(y) == 1:
-			c01 = c01 + term.coefficient(y)
-		elif term.degree(x) == 2 and term.degree(y) == 0:
-			c00 = c00 + term.coefficient(x^2)
-		elif term.degree(x) == 1 and term.degree(y) == 1:
-			c11 = c11 + term.coefficient(x*y)
-		elif term.degree(y) == 0 and term.degree(y) == 2:
-			c02 = c02 + term.coefficient(y^2)
-		else:
-			print(term)
-			raise Exception('higher orders not supported')
-	ret = [c00, c10, c01, c20, c11, c02]
-	if not (c00 + c10 * x + c01 * y + c20 * x^2 + c11 * x * y + c02 * y^2 - expr).is_zero():
-		raise Exception('Failure to get coefficients')
-	return ret
  */
 }
 

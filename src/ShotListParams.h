@@ -8,6 +8,7 @@
 #include <optional>
 
 #include "billiards_common/config/Table.h"
+#include "billiards_common/shots/StepWildCard.h"
 
 namespace billiards::shots {
 
@@ -16,7 +17,7 @@ namespace billiards::shots {
 		std::optional<double> cut_tolerance;
 		config::Table table;
 		billiards::layout::Locations locations;
-		std::vector<step_type::ShotStepType> step_types;
+		std::vector<ShotStepWildCard> step_types;
 
 		int range_begin;
 		int range_end;
