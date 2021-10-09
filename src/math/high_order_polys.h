@@ -9,6 +9,7 @@
 #include <Eigen/Dense>
 
 namespace billiards::shots::math {
+	inline
 	void foo() {
 		Eigen::Matrix3f A;
 		Eigen::Vector3f b;
