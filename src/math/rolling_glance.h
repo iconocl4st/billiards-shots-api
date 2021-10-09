@@ -6,100 +6,16 @@
 #define IDEA_ROLLING_GLANCE_H
 
 #include "billiards_common/math/polynomial.h"
+#include "billiards_common/shots/RollingGlanceCalculation.h"
 
 namespace billiards::shots::math {
-/*
-docker run -it sagemath/sagemath:latest
 
-import re
-# TODO: should use std::sqrt and std::cbrt...
-def convert_powers(expr):
-	return re.sub(
-	 	r'([a-zA-Z0-9]*)\^([0-9]+)', r'std::pow(\g<1>, \g<2>)', str(expr)
-	).replace('/', '/ (double) ')
-
-# Rolling glance direction.
-# Using the model in https://billiards.colostate.edu/technical_proofs/new/TP_A-4.pdf
-
-
-x, y = var('x y') # Location of cue at glance
-# The object ball is centered at the origin
-dx, dy = var('dx dy') # Location of the desired cue destination
-ax, ay = var('ax ay') # Location of the current cue position
-r = var('r') # The sum of radaii of the cue and object balls
-alpha = var('alpha') # This will be set to 2/7
-
-# FOR TEST
-# ax = -1; ay = 1; dx = 2; dy = -1; r = 0.5
-
-# The tangent direction must be one of the following. Note, it will have magnitude r.
-tx, ty = var('tx ty')
-
-# tx = y; ty = -x;
-# t1x = -y; t0y = x;
-
-# We need the location of the glance to be at radius r from the object ball
-eq_r = x^2 + y^2 == r^2
-
-# Let s represent the distance travelled along the aim line such it is
-# orthogonal to the tangent line:
-s = var('s')
-eq_s = (s * ax) * (s * ax - tx) + (s * ay) * (s * ay - ty) == 0
-
-# The rolling glance means that the direction from the glance point satisfies
-t = var('t')
-eq_dx = t * dx == (1 - alpha) * tx + alpha * s * ax
-eq_dy = t * dy == (1 - alpha) * ty + alpha * s * ay
-
-# We need to solve for x and y
-# First, we solve for s. One solution is s = 0, so we divide it out.
-s_sol = solve(eq_s / s, s)[0].right(); s_sol
-
-expr = eq_dx / eq_dy; expr
-expr = expr * ((alpha*ay*s - (alpha - 1)*ty)); expr
-expr = expr - (alpha*ax*s - (alpha - 1)*tx); expr
-expr = expr.left(); expr
-expr = expr * dy; expr
-expr = expr.expand(); expr
-expr = expr.substitute(s=s_sol); expr
-expr = expr * (ax^2 + ay^2); expr
-expr = expr.simplify_rational(); expr
-expr = expr.expand(); expr
-expr = expr.substitute(alpha=2/7); expr
-
-for ass, tan_sol in enumerate([{'tx': y, 'ty': -x}, {'tx': -y, 'ty': x}]):
-	print('\t\t// tangent assignment ' + str(ass))
-	print('\t\t// ' + str(expr.substitute(**tan_sol)))
-
-	y_sol = solve(expr.substitute(**tan_sol), y)[0].right()
-	expr2 = eq_r.substitute(y=y_sol)
-
-	expr2 = expr2 - r^2
-	expr2 = expr2 * (2*ax*ay*dx - (7*ax^2 + 5*ay^2)*dy)^2
-	expr2 = expr2.simplify_rational()
-	expr2 = expr2.left()
-	expr2 = expr2.expand()
-	expr2 = expr2.collect(x)
-	for c, ord in expr2.coefficients(x):
-		print('\t\tconst double c' + str(ord) + ' = ' + convert_powers(c.simplify())
-			.replace('std::pow(ax, 2)', 'ax2')
-			.replace('std::pow(ax, 3)', 'ax3')
-			.replace('std::pow(ax, 4)', 'ax4')
-			.replace('std::pow(ay, 2)', 'ay2')
-			.replace('std::pow(ay, 3)', 'ay3')
-			.replace('std::pow(ay, 4)', 'ay4')
-			.replace('std::pow(dx, 2)', 'dx2')
-			.replace('std::pow(dy, 2)', 'dy2')
-			.replace('std::pow(r, 2)', 'r2')
-		+ ';')
-
-	 */
-
+	inline
 	void get_glance_location(
 		const double ax, const double ay,
 		const double dx, const double dy,
-		const double r, const double default_x,
-		const std::function<void(double, double)>& receiver
+		const double r,
+		const std::function<void(const billiards::shots::RollingGlanceCalculation&)>& receiver
 	) {
 		const double ax2 = ax * ax;
 		const double ax3 = ax2 * ax;
@@ -120,42 +36,107 @@ for ass, tan_sol in enumerate([{'tx': y, 'ty': -x}, {'tx': -y, 'ty': x}]):
 			return;
 		}
 
-		const auto checker = [&](const double x, const double y) {
-			const double tx = y;
-			const double ty = -x;
-			const double s = (ax * tx + ay * ty) / (ax * ax + ay * ay);
+		const auto checker = [&](const RollingGlanceCalculation& rgc) {
+			const double tx = rgc.tan_dir.x;
+			const double ty = rgc.tan_dir.y;
+			const double aim_x = rgc.aim_dir.x;
+			const double aim_y = rgc.aim_dir.y;
+
+			const double s = (aim_x * tx + aim_y * ty) / (aim_x * aim_x + aim_y * aim_y);
 			const double alpha = 2 / 7.0;
-//			eq_dx = t * dx == (1 - alpha) * tx + alpha * s * ax
-//			eq_dy = t * dy == (1 - alpha) * ty + alpha * s * ay
 			double t;
 			if (std::abs(dx) >= TOL) {
-				t = ((1 - alpha) * tx + alpha * s * ax) / dx;
+				t = (alpha * aim_x + (1 - alpha) * s * aim_x) / dx;
 			} else if (std::abs(dy) >= TOL) {
-				t = ((1 - alpha) * ty + alpha * s * ay) / dy;
+				t = (alpha * aim_y + (1 - alpha) * s * aim_y) / dy;
 			} else {
 				throw std::runtime_error{"We already checked whether dx and dy are zero..."};
 			}
-			if (std::abs((1 - alpha) * tx + alpha * s * ax - t * dx) > LARGER_TOL) {
+
+			const double orthogonality_at_s = rgc.aim_dir.x * (s * rgc.aim_dir.x - tx) + rgc.aim_dir.y * (s * rgc.aim_dir.y - ty);
+			if (std::abs(orthogonality_at_s) > LARGER_TOL) {
 				return;
 			}
-			if (std::abs((1 - alpha) * ty + alpha * s * ay - t * dy) > LARGER_TOL) {
+
+			const double rolling_x = alpha * tx + (1 - alpha) * s * aim_x - t * dx;
+			if (std::abs(rolling_x) > LARGER_TOL) {
 				return;
 			}
-			receiver(x, y);
-		};
-		const auto compute_y = [&](const double x) {
-			const double rad = r * r - x * x;
-			if (std::abs(rad) < TOL) {
-				checker(x, 0);
-			} else {
-				checker(x, std::sqrt(rad));
+			const double rolling_y = alpha * ty + (1 - alpha) * s * aim_y - t * dy);
+			if (std::abs(rolling_y) > LARGER_TOL) {
+				return;
 			}
+			receiver(rgc);
 		};
 
-		const double c0 = -4*ax2*ay2*dx2*r2 + 28*ax3*ay*dx*dy*r2 + 20*ax*ay3*dx*dy*r2 - 49*ax4*dy2*r2 - 70*ax2*ay2*dy2*r2 - 25*ay4*dy2*r2;
-		const double c2 = 25*ax4*dx2 + 74*ax2*ay2*dx2 + 49*ay4*dx2 - 48*ax3*ay*dx*dy - 48*ax*ay3*dx*dy + 49*ax4*dy2 + 74*ax2*ay2*dy2 + 25*ay4*dy2;
-//		std::cout << c0 << " + " << c2 << " * x^2" << std::endl;
-		billiards::math::solve_2(c0, 0, c2, default_x, compute_y);
+		do {
+			const double c0 = -25/ (double) 49*ax2*ay2*dx2*r2 + 10/ (double) 7*ax3*ay*dx*dy*r2 + 20/ (double) 49*ax*ay3*dx*dy*r2 - ax4*dy2*r2 - 4/ (double) 7*ax2*ay2*dy2*r2 - 4/ (double) 49*ay4*dy2*r2;
+			const double c2 = 4/ (double) 49*ax4*dx2 + 53/ (double) 49*ax2*ay2*dx2 + ay4*dx2 - 90/ (double) 49*ax3*ay*dx*dy - 90/ (double) 49*ax*ay3*dx*dy + ax4*dy2 + 53/ (double) 49*ax2*ay2*dy2 + 4/ (double) 49*ay4*dy2;
+			if (std::abs(c2) < TOL) {
+				break;
+			}
+			const double x2 = -c0 / c2;
+			if (x2 < 0) {
+				break;
+			}
+			const double x = std::sqrt(x2);
+			const double rad = r * r - x * x;
+			double y;
+			if (rad > TOL) {
+				y = std::sqrt(rad);
+			} else if (rad > -TOL) {
+				y = 0;
+			} else {
+				break;
+			}
+			const double tx = y;
+			const double ty = -x;
+			checker(RollingGlanceCalculation{x, y, tx, ty, x - ax, y - ay});
+		} while (false);
+
+		do {
+			const double c0 = -25/ (double) 49*ax2*ay2*dx2*r2 + 10/ (double) 7*ax3*ay*dx*dy*r2 + 20/ (double) 49*ax*ay3*dx*dy*r2 - ax4*dy2*r2 - 4/ (double) 7*ax2*ay2*dy2*r2 - 4/ (double) 49*ay4*dy2*r2;
+			const double c2 = 4/ (double) 49*ax4*dx2 + 53/ (double) 49*ax2*ay2*dx2 + ay4*dx2 - 90/ (double) 49*ax3*ay*dx*dy - 90/ (double) 49*ax*ay3*dx*dy + ax4*dy2 + 53/ (double) 49*ax2*ay2*dy2 + 4/ (double) 49*ay4*dy2;
+			if (std::abs(c2) < TOL) {
+				break;
+			}
+			const double x2 = -c0 / c2;
+			if (x2 < 0) {
+				break;
+			}
+			const double x = std::sqrt(x2);
+			const double rad = r * r - x * x;
+			double y;
+			if (rad > TOL) {
+				y = std::sqrt(rad);
+			} else if (rad > -TOL) {
+				y = 0;
+			} else {
+				break;
+			}
+			const double tx = -y;
+			const double ty = x;
+			checker(RollingGlanceCalculation{x, y, tx, ty, x - ax, y - ay});
+		} while (false);
+	}
+
+
+	inline
+	void get_glance_location(
+		const geometry::MaybePoint& cue_loc,
+		const geometry::MaybePoint& destination_loc,
+		const double r,
+		const std::function<void(const billiards::shots::RollingGlanceCalculation&)>& receiver
+	) {
+		if (!cue_loc.is_valid() || !destination_loc.is_valid()) {
+			return;
+		}
+		get_glance_location(
+			cue_loc.x.get(), cue_loc.y.get(),
+			destination_loc.x.get(), destination_loc.y.get(),
+			r,
+			receiver
+		);
 	}
 
 

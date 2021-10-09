@@ -17,7 +17,7 @@ namespace billiards::shots {
 		}
 
 		const auto& prev = get_previous_status(status);
-		if (prev.assigned_exiting_radius) {
+		if (!prev.assigned_exiting_radius) {
 			return false;
 		}
 
@@ -28,7 +28,7 @@ namespace billiards::shots {
 
 	[[nodiscard]] inline
 	bool maybe_assign_kiss_locations(AssignmentStatus& status) {
-		const auto& kiss_step = status.info.get_typed_step<KissStep>(status.index);
+		const auto& kiss_step = status.info.get_typed_step<KissStep>(status.get_info());
 		switch (kiss_step->type) {
 			case kt::ROLLING:
 				return maybe_assign_rolling_kiss_locations(status);
@@ -42,7 +42,7 @@ namespace billiards::shots {
 	[[nodiscard]] inline
 	bool maybe_assign_kiss(AssignmentStatus& status) {
 		const bool b1 = maybe_assign_kiss_source_radius(status);
-		const bool b2 = maybe_assign_calculate_kiss_locations(status);
+		const bool b2 = maybe_assign_rolling_kiss_locations(status);
 		return b1 || b2;
 	}
 }

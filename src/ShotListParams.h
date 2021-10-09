@@ -22,6 +22,8 @@ namespace billiards::shots {
 		int range_begin;
 		int range_end;
 
+		bool random;
+
 		// bool max_depth...
 		// bool include_carems...
 		// bool include_banks...
@@ -29,7 +31,7 @@ namespace billiards::shots {
 		ShotListParams()
 			: cut_tolerance{0.1}
 			, table{}
-			, step_types{step_type::CUE, step_type::STRIKE, step_type::POCKET}
+			, step_types{} // step_type::CUE, step_type::STRIKE, step_type::POCKET
 			, range_begin{0}
 			, range_end{50}
 		{}
@@ -47,8 +49,8 @@ namespace billiards::shots {
 			writer.end_object();
 			writer.key("step-wild-cards");
 			writer.begin_array();
-			for (const auto& type : step_types) {
-				writer.value(step_type::to_string(type));
+			for (const auto& card : step_types) {
+				card.to_json(writer);
 			}
 			writer.end_array();
 			writer.end_object();
@@ -70,8 +72,9 @@ namespace billiards::shots {
 
 			ENSURE_ARRAY(status, value, "step-wild-cards", "Must have step wild cards");
 			step_types.clear();
-			for (const auto& str : value["step-wild-cards"]) {
-				step_types.emplace_back(step_type::from_string(str.get<std::string>()));
+			for (const auto& v : value["step-wild-cards"]) {
+				step_types.emplace_back();
+				PARSE_CHILD(status, v, step_types.back());
 			}
 		}
 	};

@@ -8,7 +8,7 @@
 #include <list>
 
 #include "billiards_common/geometry/Maybe.h"
-#include "billiards_common/geometry/polynomial.h"
+#include "billiards_common/math/polynomial.h"
 
 //extern "C" {
 //#include "math/orient_pocket_gen/gen_sol_0.h"
@@ -154,7 +154,7 @@ for idx, sol in enumerate(sols):
 		const double c3 = 2 * (2 * av * r * r * v2 + av * av * av - a2 * av * v2);
 		const double c4 = -(r * r * v2 * v2 + av * av * v2 - a2 * v2 * v2);
 
-		billiards::math::poly::solve_4(
+		billiards::math::solve_4(
 			c0, c1, c2, c3, c4,
 			0.5 * std::sqrt(v2),
 			[/*r2, v2, av, a2,*/ &sols](const double t) {

@@ -12,11 +12,11 @@
 #include "billiards_common/shots/ShotInformation.h"
 #include "billiards_common/shots/shot_is_possible.h"
 
-#include "calculate_shot.h"
+#include "shot_calculation/shot.h"
 
 #include "ShotListParams.h"
+#include "ShotInfoParams.h"
 #include "ShotsIterator.h"
-
 
 
 namespace billiards::shots {
@@ -32,8 +32,7 @@ namespace billiards::shots {
 		params.table = table;
 		params.locations = locations;
 		params.shot = *shot;
-		calculate_shot(params, info);
-		return shot_info_is_possible(table, locations, info);
+		return calculate_shot(params, info) && shot_info_is_possible(table, locations, info);
 	}
 
 	inline

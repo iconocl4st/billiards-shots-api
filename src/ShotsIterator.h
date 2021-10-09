@@ -123,50 +123,86 @@ namespace billiards::shots {
 //			throw std::runtime_error{"Tried to call next when there is none..."};
 		}
 
-		inline
-		void assign(const config::Table& table, const layout::Locations& locations, const std::vector<step_type::ShotStepType>& types) {
-//			std::cout << "Received types:" << std::endl;
-//			for (const auto& type : types) {
-//				std::cout << step_type::to_string(type) << std::endl;
-//			}
 
-			for (const auto& type : types) {
-				switch (type) {
-					case step_type::CUE: {
-						auto map = std::make_shared<std::vector<int>>();
-						for (int i = 0; i < locations.balls.size(); i++) {
-							if (layout::vball::virtual_type::is_cue_ball(locations.balls[i].get_type())) {
-								map->push_back(i);
-							}
-						}
-						children.emplace_back(type, map);
-						break;
-					}
-					case step_type::RAIL: {
-						children.emplace_back(type, config::constants::NUM_RAILS);
-						break;
-					}
-					case step_type::STRIKE: {
-						auto map = std::make_shared<std::vector<int>>();
-						for (int i = 0; i < locations.balls.size(); i++) {
-							if (layout::vball::virtual_type::is_object_ball(locations.balls[i].get_type())) {
-								map->push_back(i);
-							}
-						}
-						children.emplace_back(type, map);
-						break;
-					}
-					case step_type::POCKET: {
-						children.emplace_back(type, (int) table.pockets.size());
-						break;
-					}
-					case step_type::KISS: {
-						throw std::runtime_error{"Implement me"};
-					}
-					case step_type::UNKNOWN:
-					default:
-						throw std::runtime_error{"Unknown shot type"};
+		inline void assign_any(
+			const config::Table& table,
+			const layout::Locations& locations,
+			const ShotStepWildCard& wild_card
+		) {
+			switch (wild_card.step_type) {
+				case step_type::RAIL: {
+					children.emplace_back(wild_card.step_type, config::constants::NUM_RAILS);
+					break;
 				}
+				case step_type::POCKET: {
+					children.emplace_back(wild_card.step_type, (int) table.pockets.size());
+					break;
+				}
+				case step_type::KISS:
+				case step_type::CUE: {
+					auto map = std::make_shared<std::vector<int>>();
+					for (int i = 0; i < locations.balls.size(); i++) {
+						if (layout::vball::virtual_type::is_cue_ball(locations.balls[i].get_type())) {
+							map->push_back(i);
+						}
+					}
+					children.emplace_back(wild_card.step_type, map);
+					break;
+				}
+				case step_type::STRIKE: {
+					auto map = std::make_shared<std::vector<int>>();
+					for (int i = 0; i < locations.balls.size(); i++) {
+						if (layout::vball::virtual_type::is_object_ball(locations.balls[i].get_type())) {
+							map->push_back(i);
+						}
+					}
+					children.emplace_back(wild_card.step_type, map);
+					break;
+				}
+				case step_type::UNKNOWN:
+				default:
+					break;
+			}
+		}
+
+		inline void assign(
+			const config::Table& table,
+			const layout::Locations& locations,
+			const ShotStepWildCard& wild_card
+		) {
+			switch (wild_card.choices_type) {
+				case wild_card::ONE_OF: {
+					auto map = std::make_shared<std::vector<int>>();
+					for (const int& v : wild_card.possible_values) {
+						map->push_back(v);
+					}
+					children.emplace_back(wild_card.step_type, map);
+					break;
+				}
+				case wild_card::EXACT: {
+					auto map = std::make_shared<std::vector<int>>();
+					map->push_back(wild_card.exact_value);
+					children.emplace_back(wild_card.step_type, map);
+					break;
+				}
+				case wild_card::ANY: {
+					assign_any(table, locations, wild_card);
+					break;
+				}
+				case wild_card::UNKNOWN:
+				default:
+					break;
+			}
+		}
+
+		inline
+		void assign(
+			const config::Table& table,
+			const layout::Locations& locations,
+			const std::vector<ShotStepWildCard>& wild_cards
+		) {
+			for (const auto& wild_card : wild_cards) {
+				assign(table, locations, wild_card);
 			}
 		}
 	};

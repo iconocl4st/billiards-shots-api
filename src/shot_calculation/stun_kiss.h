@@ -17,7 +17,7 @@ namespace billiards::shots {
 		if (status.already_has_source()) {
 
 		}
-
+		return false;
 	}
 }
 

@@ -6,17 +6,18 @@
 #define IDEA_BANK_H
 
 
-#include "basic_calculations.h"
+#include "math/basic_calculations.h"
+#include "billiards_common/geometry/Maybe.h"
 #include "billiards_common/math/linear_system_2x2.h"
 
 namespace billiards::shots::math {
 
 	[[nodiscard]] inline
-	MaybePoint calculate_bank(
-		const MaybePoint& src, const MaybePoint& dst,
-		const MaybePoint& s1, const MaybePoint& s2,
-		const MaybePoint& in,
-		const MaybeDouble radius
+	geometry::MaybePoint calculate_bank(
+		const geometry::MaybePoint& src, const geometry::MaybePoint& dst,
+		const geometry::MaybePoint& s1, const geometry::MaybePoint& s2,
+		const geometry::MaybePoint& in,
+		const geometry::MaybeDouble radius
 	) {
 		const auto rail_line = geometry::through(s1, s2);
 		const auto reflection = geometry::reflect(dst, rail_line);
@@ -28,11 +29,11 @@ namespace billiards::shots::math {
 
 
 	[[nodiscard]] inline
-	MaybePoint calculate_bank_2(
-		const MaybePoint& src, const MaybePoint& dst,
-		const MaybePoint& s1, const MaybePoint& s2,
-		const MaybePoint& in,
-		const MaybeDouble radius
+	geometry::MaybePoint calculate_bank_2(
+		const geometry::MaybePoint& src, const geometry::MaybePoint& dst,
+		const geometry::MaybePoint& s1, const geometry::MaybePoint& s2,
+		const geometry::MaybePoint& in,
+		const geometry::MaybeDouble radius
 	) {
 		const auto rail_line = through(s1, s2);
 		const auto bank_line = parallel_at(rail_line, s1 + in * radius);

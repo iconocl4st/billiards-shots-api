@@ -39,8 +39,24 @@ namespace billiards::shots {
 
 		~AssignmentStatus() = default;
 
+		[[nodiscard]] inline
+		StepInfo& get_info() {
+			return info.get_info(index);
+		}
+
+		[[nodiscard]] inline
+		const StepInfo& get_info() const {
+			return info.get_info(index);
+		}
+
+		[[nodiscard]] inline
 		std::shared_ptr<GoalPostTarget>& get_target() {
-			return info.destinations[index].target;
+			return info.get_info(index).target;
+		}
+
+		[[nodiscard]] inline
+		const std::shared_ptr<GoalPostTarget>& get_target() const {
+			return info.get_info(index).target;
 		}
 
 		[[nodiscard]] inline
@@ -71,28 +87,38 @@ namespace billiards::shots {
 
 		inline
 		void assign_target(std::shared_ptr<shots::GoalPostTarget>& target) {
-			info.destinations[index].target = target;
+			info.get_info(index).target = target;
 			assigned_target = true;
+			for (int i = 0; i < 3; i++) {
+				info.update_validity(target->posts[i].is_valid());
+			}
 		}
 
 		inline
-		void assign_exiting_location(const goemetry::MaybePoint& p) {
+		void assign_exiting_location(const geometry::MaybePoint& p) {
 			exiting_location = p;
-			assigned_source = true;
-			info.valid_calculations = p.is_valid();
+			assigned_exiting_loc = true;
+			info.update_validity(p.is_valid());
 		}
 
 		inline
-		void assign_exiting_radius(const goemetry::MaybePoint& p) {
-			exiting_radius = radius;
-			assigned_source = true;
-			info.valid_calculations = p.is_valid();
+		void assign_exiting_radius(const geometry::MaybeDouble& r) {
+			exiting_radius = r;
+			assigned_exiting_radius = true;
+			info.update_validity(r.is_valid());
 		}
 
 		inline
 		void assign_exiting(int ball_index) {
 			assign_exiting_location(params.locations.balls[ball_index].location);
-			assigned_exiting_radius(get_ball_type(params.table, params.locations).radius);
+			assign_exiting_radius(get_ball_type(params.table, params.locations, ball_index)->radius);
+		}
+
+		friend std::ostream& operator<<(std::ostream& out, const AssignmentStatus& status) {
+			out << "<t=" << status.assigned_target << ",";
+			out << "r=" << status.assigned_exiting_radius << ",";
+			out << "l=" << status.assigned_exiting_loc << ">";
+			return out;
 		}
 
 //		[[nodiscard]] inline
@@ -119,10 +145,11 @@ namespace billiards::shots {
 			, info{info}
 		{
 			for (int i = 0; i < num_steps; i++) {
-				statuses.emplace_back(params, info, i);
+				statuses.emplace_back(*this, params, info, i);
 			}
 		}
 
+		/*
 		[[nodiscard]] inline
 		bool has_source_for(int index) const {
 			return index > 0 && statuses[index - 1].assigned_source;
@@ -131,6 +158,15 @@ namespace billiards::shots {
 		[[nodiscard]] inline
 		bool has_target_for(int index) const {
 			return index < statuses.size() - 1 && statuses[index + 1].assigned_target;
+		}
+		 */
+
+		friend std::ostream& operator<<(std::ostream& out, const Assignment& status) {
+			out << "[Assignment:";
+			for (const auto& status : status.statuses) {
+				out << status;
+			}
+			return out;
 		}
 	};
 

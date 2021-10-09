@@ -2,11 +2,11 @@
 // Created by thallock on 10/5/21.
 //
 
-#ifndef IDEA_RAIL_H
-#define IDEA_RAIL_H
+#ifndef IDEA_RAIL_CALC_H
+#define IDEA_RAIL_CALC_H
 
 #include "shot_calculation/AssignmentStatus.h"
-#include "shot_calculation/shot_calculations.h"
+#include "math/bank.h"
 #include "billiards_common/geometry/geometry.h"
 
 namespace billiards::shots {
@@ -31,21 +31,27 @@ namespace billiards::shots {
 		if (status.already_has_source()) {
 			return false;
 		}
-		if (!get_previous_status(status).already_has_source()) {
-			return false;
+		bool progress = false;
+		const auto previous = get_previous_status(status);
+		if (!status.assigned_exiting_radius && previous.assigned_exiting_radius) {
+			status.assign_exiting_radius(previous.exiting_radius);
+			progress = true;
 		}
-		const auto& rail_step = status.info.get_typed_step<RailStep>(status.index);
-		const auto& rail = ass.params.table.rail(rail_index);
-		const auto& source = get_previous_status(status).exiting_location;
-		const auto& radius = get_previous_status(status).exiting_radius;
+		if (!previous.assigned_exiting_loc) {
+			return progress;
+		}
+		const auto& rail_step = status.info.get_typed_step<RailStep>(status.get_info());
+		const auto& rail = status.params.table.rail(rail_step->rail);
+		const auto& source = previous.exiting_location;
+		const auto& radius = previous.exiting_radius;
 
 		const auto rail_line = geometry::through(rail.segment1, rail.segment2);
 		const auto reflection = geometry::reflect(source, rail_line);
 		// Could use reflection...
 		const auto travel_line = geometry::through(source, reflection);
-		const auto bank_line = geometry::parallel_at(rail_line, rail.segment1 + rail.in * radius);
+		const auto bank_line = geometry::parallel_at(rail_line, rail.segment1 + rail.in * radius.get());
 		const auto intersection = geometry::intersection(bank_line, travel_line);
-		status.assign_source(intersection, radius);
+		status.assign_exiting_location(intersection);
 
 //		const auto& rail_step = info.get_typed_step<RailStep>(index);
 //		info.destinations[index].exiting_source = params.locations.get_ball_location(rail_step->cue_ball);
@@ -62,11 +68,11 @@ namespace billiards::shots {
 			return false;
 		}
 
-		const auto& rail_step = info.get_typed_step<RailStep>(status.index);
-		const auto& rail = params.table.rail(rail_step->index);
-		const auto& source = ass.statuses[status.index - 1].exiting_source;
-		const auto& radius = ass.statuses[status.index - 1].exiting_radius;
-		const auto& next_target = ass.info.destinations[status.index + 1].target;
+		const auto& rail_step = status.info.get_typed_step<RailStep>(status.get_info());
+		const auto& rail = status.params.table.rail(rail_step->rail);
+		const auto& source = status.ass.statuses[status.index - 1].exiting_location;
+		const auto& radius = status.ass.statuses[status.index - 1].exiting_radius;
+		const auto& next_target = get_next_status(status).get_target();
 		std::shared_ptr<GoalPostTarget> target = std::make_shared<GoalPostTarget>();
 		for (int i = 0; i < 3; i++) {
 			target->posts[i] = shots::math::calculate_bank(
@@ -80,9 +86,9 @@ namespace billiards::shots {
 
 	[[nodiscard]] inline
 	bool maybe_assign_rail(AssignmentStatus& status) {
-		const b1 = maybe_assign_rail_source_radius(status);
-		const b2 = maybe_assign_rail_source_location(status);
-		const b3 = maybe_assign_rail_target(status);
+		const bool b1 = maybe_assign_rail_source_radius(status);
+		const bool b2 = maybe_assign_rail_source_location(status);
+		const bool b3 = maybe_assign_rail_target(status);
 		return b1 || b2 || b3;
 	}
 }

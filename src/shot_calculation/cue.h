@@ -15,7 +15,7 @@ namespace billiards::shots {
 			return false;
 		}
 
-		const auto& cue_step = status.info.get_typed_step<CueStep>(status.index);
+		const auto& cue_step = status.info.get_typed_step<CueStep>(status.get_info());
 		status.assign_exiting(cue_step->cue_ball);
 		return true;
 	}
@@ -32,8 +32,8 @@ namespace billiards::shots {
 
 	[[nodiscard]] inline
 	bool maybe_assign_cue(AssignmentStatus& status) {
-		const b1 = maybe_assign_cue_source(status);
-		const b2 = maybe_assign_cue_target(status);
+		const bool b1 = maybe_assign_cue_source(status);
+		const bool b2 = maybe_assign_cue_target(status);
 		return b1 || b2;
 	}
 }
