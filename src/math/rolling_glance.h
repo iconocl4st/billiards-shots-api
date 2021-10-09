@@ -7,6 +7,7 @@
 
 #include "billiards_common/math/polynomial.h"
 #include "billiards_common/shots/RollingGlanceCalculation.h"
+#include "math/high_order_polys.h"
 
 namespace billiards::shots::math {
 
@@ -17,6 +18,8 @@ namespace billiards::shots::math {
 		const double r,
 		const std::function<void(const billiards::shots::RollingGlanceCalculation&)>& receiver
 	) {
+		foo();
+
 		const double ax2 = ax * ax;
 		const double ax3 = ax2 * ax;
 		const double ax4 = ax3 * ax;
@@ -37,36 +40,36 @@ namespace billiards::shots::math {
 		}
 
 		const auto checker = [&](const RollingGlanceCalculation& rgc) {
-//			const double tx = rgc.tan_dir.x;
-//			const double ty = rgc.tan_dir.y;
-//			const double aim_x = rgc.aim_dir.x;
-//			const double aim_y = rgc.aim_dir.y;
-//
-//			const double s = (aim_x * tx + aim_y * ty) / (aim_x * aim_x + aim_y * aim_y);
-//			const double alpha = 2 / 7.0;
-//			double t;
-//			if (std::abs(dx) >= TOL) {
-//				t = (alpha * aim_x + (1 - alpha) * s * aim_x) / dx;
-//			} else if (std::abs(dy) >= TOL) {
-//				t = (alpha * aim_y + (1 - alpha) * s * aim_y) / dy;
-//			} else {
-//				throw std::runtime_error{"We already checked whether dx and dy are zero..."};
-//			}
-//
-//			const double orthogonality_at_s = rgc.aim_dir.x * (s * rgc.aim_dir.x - tx) + rgc.aim_dir.y * (s * rgc.aim_dir.y - ty);
-//			if (std::abs(orthogonality_at_s) > LARGER_TOL) {
-//				return;
-//			}
-//
-//			const double rolling_x = alpha * tx + (1 - alpha) * s * aim_x - t * dx;
-//			if (std::abs(rolling_x) > LARGER_TOL) {
-//				return;
-//			}
-//			const double rolling_y = alpha * ty + (1 - alpha) * s * aim_y - t * dy);
-//			if (std::abs(rolling_y) > LARGER_TOL) {
-//				return;
-//			}
-//			receiver(rgc);
+			const double tx = rgc.tan_dir.x;
+			const double ty = rgc.tan_dir.y;
+			const double aim_x = rgc.aim_dir.x;
+			const double aim_y = rgc.aim_dir.y;
+
+			const double s = (aim_x * tx + aim_y * ty) / (aim_x * aim_x + aim_y * aim_y);
+			const double alpha = 2 / 7.0;
+			double t;
+			if (std::abs(dx) >= TOL) {
+				t = (alpha * aim_x + (1 - alpha) * s * aim_x) / dx;
+			} else if (std::abs(dy) >= TOL) {
+				t = (alpha * aim_y + (1 - alpha) * s * aim_y) / dy;
+			} else {
+				throw std::runtime_error{"We already checked whether dx and dy are zero..."};
+			}
+
+			const double orthogonality_at_s = rgc.aim_dir.x * (s * rgc.aim_dir.x - tx) + rgc.aim_dir.y * (s * rgc.aim_dir.y - ty);
+			if (std::abs(orthogonality_at_s) > LARGER_TOL) {
+				return;
+			}
+
+			const double rolling_x = alpha * tx + (1 - alpha) * s * aim_x - t * dx;
+			if (std::abs(rolling_x) > LARGER_TOL) {
+				return;
+			}
+			const double rolling_y = alpha * ty + (1 - alpha) * s * aim_y - t * dy;
+			if (std::abs(rolling_y) > LARGER_TOL) {
+				return;
+			}
+			receiver(rgc);
 		};
 
 		do {

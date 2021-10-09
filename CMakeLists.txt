@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(Threads REQUIRED)
 find_package(Boost COMPONENTS system REQUIRED)
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 add_executable(
         shots_api
@@ -27,6 +28,7 @@ target_link_libraries(
 
 	Threads::Threads
 	${Boost_SYSTEM_LIBRARY}
+	Eigen3::Eigen
 )
 
 
