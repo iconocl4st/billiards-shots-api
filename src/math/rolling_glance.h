@@ -104,7 +104,9 @@ namespace billiards::shots::math {
 			const double a4 = 25/ (double) 49*ax_4 + 50/ (double) 49*ax_2*ay_2 + 25/ (double) 49*ay_4 - 90/ (double) 49*ax_3*dx - 90/ (double) 49*ax*ay_2*dx + 81/ (double) 49*ax_2*dx_2 + 81/ (double) 49*ay_2*dx_2 - 90/ (double) 49*ax_2*ay*dy - 90/ (double) 49*ay_3*dy + 81/ (double) 49*ax_2*dy_2 + 81/ (double) 49*ay_2*dy_2;
 			std::vector<double> coefficients{a0, a1, a2, a3, a4};
 
-			billiards::shots::math::compute_roots(coefficients, [&](const double x) {
+			std::list<double> roots;
+			billiards::shots::math::compute_roots(coefficients, roots);
+			for (const double x : roots) {
 				const double rad = r * r - x * x;
 				double y;
 				if (rad > TOLERANCE) {
@@ -125,7 +127,7 @@ namespace billiards::shots::math {
 				const double aim_x = -(ax - x)*s + x;
 				const double aim_y = -(ay - y)*s + y;
 				checker(RollingGlanceCalculation{x, y, tx, ty, aim_x, aim_y});
-			});
+			};
 		}
 
 		{
@@ -136,7 +138,9 @@ namespace billiards::shots::math {
 			const double a4 = 25/ (double) 49*ax_4 + 50/ (double) 49*ax_2*ay_2 + 25/ (double) 49*ay_4 - 90/ (double) 49*ax_3*dx - 90/ (double) 49*ax*ay_2*dx + 81/ (double) 49*ax_2*dx_2 + 81/ (double) 49*ay_2*dx_2 - 90/ (double) 49*ax_2*ay*dy - 90/ (double) 49*ay_3*dy + 81/ (double) 49*ax_2*dy_2 + 81/ (double) 49*ay_2*dy_2;
 			std::vector<double> coefficients{a0, a1, a2, a3, a4};
 
-			billiards::shots::math::compute_roots(coefficients, [&](const double x) {
+			std::list<double> roots;
+			billiards::shots::math::compute_roots(coefficients, roots);
+			for (const double x : roots) {
 				const double rad = r * r - x * x;
 				double y;
 				if (rad > TOLERANCE) {
@@ -157,7 +161,7 @@ namespace billiards::shots::math {
 				const double aim_x = -(ax - x)*s + x;
 				const double aim_y = -(ay - y)*s + y;
 				checker(RollingGlanceCalculation{x, y, tx, ty, aim_x, aim_y});
-			});
+			};
 		}
 	}
 

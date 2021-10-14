@@ -61,36 +61,28 @@ docker run -v $(realpath $REPOS/billiards-scripts/sage/scripts):/home/sage/scrip
 		const double r1, const double r2,
 		const std::function<void(const KissToPocketSolution& sol)>& receiver
 	) {
-		const double px2 = px * px;
-		const double px3 = px2 * px;
-		const double px4 = px3 * px;
-		const double py2 = py * py;
-		const double py3 = py2 * py;
-		const double py4 = py3 * py;
-		const double r12 = r1 * r1;
-		const double r13 = r12 * r1;
-		const double r14 = r13 * r1;
-		const double r22 = r2 * r2;
-		const double r23 = r22 * r2;
-		const double r24 = r23 * r2;
-		const double ax2 = ax * ax;
-		const double ay2 = ay * ay;
-		const double px2ppy2 = px2 + py2;
-		const double ax2pay2 = ax2 + ay2;
-		const double radi = px2ppy2 - r12;
-		if (radi < 0) {
-			// The pocket is too close to the object ball
-			return;
-		}
-		const double sradi = std::sqrt(radi);
-		if (px2ppy2 < TOL) {
-			// The object is at the pocket
-			return;
-		}
-		if (ax2pay2 < TOL) {
-			// the cue is at the object
-			return;
-		}
+		const double r1_2 = r1 * r1;
+		const double r1_3 = r1_2 * r1;
+		const double r1_4 = r1_3 * r1;
+		const double r1_5 = r1_4 * r1;
+		const double r1_6 = r1_5 * r1;
+		const double r1_7 = r1_6 * r1;
+		const double r1_8 = r1_7 * r1;
+		const double r2_2 = r2 * r2;
+		const double r2_3 = r2_2 * r2;
+		const double r2_4 = r2_3 * r2;
+		const double r2_5 = r2_4 * r2;
+		const double r2_6 = r2_5 * r2;
+		const double r2_7 = r2_6 * r2;
+		const double r2_8 = r2_7 * r2;
+		const double ax_2 = ax * ax;
+		const double ax_3 = ax_2 * ax;
+		const double ax_4 = ax_3 * ax;
+		const double ay_2 = ay * ay;
+		const double ay_3 = ay_2 * ay;
+		const double ay_4 = ay_3 * ay;
+		const double px_2 = px * px;
+		const double py_2 = py * py;
 
 		std::list<KissToPocketSolution> unique_sols;
 		const auto unique_checker = [&](const KissToPocketSolution& g) {
@@ -144,74 +136,76 @@ docker run -v $(realpath $REPOS/billiards-scripts/sage/scripts):/home/sage/scrip
 		};
 
 		{
-			const double a00 = -r12 - 2*r1*r2 - r22;
-			const double a10 = 0;
-			const double a01 = 0;
-			const double a20 = 1;
-			const double a11 = 0;
-			const double a02 = 1;
-			const double b00 = 0;
-			const double b10 = 5/(double) 14*std::pow(ax, 2)*px - 1/(double) 7*ax*ay*px + 1/(double) 2*std::pow(ay, 2)*px - 5/(double) 14*std::pow(ax, 2)*py - 1/(double) 7*ax*ay*py - 1/(double) 2*std::pow(ay, 2)*py;
-			const double b01 = 1/(double) 2*std::pow(ax, 2)*px - 1/(double) 7*ax*ay*px + 5/(double) 14*std::pow(ay, 2)*px + 1/(double) 2*std::pow(ax, 2)*py + 1/(double) 7*ax*ay*py + 5/(double) 14*std::pow(ay, 2)*py;
-			const double b20 = -5/(double) 14*std::pow(ax, 2) + 1/(double) 7*ax*ay - 1/(double) 2*std::pow(ay, 2);
-			const double b11 = -1/(double) 7*std::pow(ax, 2) + 2/(double) 7*ax*ay + 1/(double) 7*std::pow(ay, 2);
-			const double b02 = -1/(double) 2*std::pow(ax, 2) - 1/(double) 7*ax*ay - 5/(double) 14*std::pow(ay, 2);
-			const auto get_glance = [&](const double x, const double y) {
-				return KissToPocketSolution{
-					x, y,
-					1/(double) 2*px - 1/(double) 2*py - 1/(double) 2*x + 1/(double) 2*y, 1/(double) 2*px + 1/(double) 2*py - 1/(double) 2*x - 1/(double) 2*y,
-					y, -x,
-					ax - x, ay - y
-				};
-			};
-			billiards::math::solve_22_22(
-				a00, a10, a01, a20, a11, a02,
-				b00, b10, b01, b20, b11, b02,
-				M_PI, M_PI,
-				[&](const double x, const double y) {
-					if (px * y - py * x > 0) {
-						return;
-					}
-					print_receiver(get_glance(x, y));
+			const double a0 = -49*ax_4*px_2*r1_2 + 70*ax_3*ay*px_2*r1_2 - 53*ax_2*ay_2*px_2*r1_2 + 20*ax*ay_3*px_2*r1_2 - 4*ay_4*px_2*r1_2 - 98*ax_4*px*py*r1_2 - 6*ax_2*ay_2*px*py*r1_2 - 8*ay_4*px*py*r1_2 - 49*ax_4*py_2*r1_2 - 70*ax_3*ay*py_2*r1_2 - 53*ax_2*ay_2*py_2*r1_2 - 20*ax*ay_3*py_2*r1_2 - 4*ay_4*py_2*r1_2 + 49*ax_4*r1_4 + 70*ax_3*ay*r1_4 + 53*ax_2*ay_2*r1_4 + 20*ax*ay_3*r1_4 + 4*ay_4*r1_4 - 140*ax_3*px*r1_4 + 40*ax*ay_2*px*r1_4 - 3*ax_2*px_2*r1_4 - 20*ax*ay*px_2*r1_4 + 8*ay_2*px_2*r1_4 - 106*ax_2*px*py*r1_4 + 16*ay_2*px*py*r1_4 - 3*ax_2*py_2*r1_4 + 20*ax*ay*py_2*r1_4 + 8*ay_2*py_2*r1_4 + 3*ax_2*r1_6 - 20*ax*ay*r1_6 - 8*ay_2*r1_6 - 40*ax*px*r1_6 - 4*px_2*r1_6 - 8*px*py*r1_6 - 4*py_2*r1_6 + 4*r1_8 - 98*ax_4*px_2*r1*r2 + 140*ax_3*ay*px_2*r1*r2 - 106*ax_2*ay_2*px_2*r1*r2 + 40*ax*ay_3*px_2*r1*r2 - 8*ay_4*px_2*r1*r2 - 196*ax_4*px*py*r1*r2 - 12*ax_2*ay_2*px*py*r1*r2 - 16*ay_4*px*py*r1*r2 - 98*ax_4*py_2*r1*r2 - 140*ax_3*ay*py_2*r1*r2 - 106*ax_2*ay_2*py_2*r1*r2 - 40*ax*ay_3*py_2*r1*r2 - 8*ay_4*py_2*r1*r2 + 196*ax_4*r1_3*r2 + 280*ax_3*ay*r1_3*r2 + 212*ax_2*ay_2*r1_3*r2 + 80*ax*ay_3*r1_3*r2 + 16*ay_4*r1_3*r2 - 560*ax_3*px*r1_3*r2 + 160*ax*ay_2*px*r1_3*r2 - 12*ax_2*px_2*r1_3*r2 - 80*ax*ay*px_2*r1_3*r2 + 32*ay_2*px_2*r1_3*r2 - 424*ax_2*px*py*r1_3*r2 + 64*ay_2*px*py*r1_3*r2 - 12*ax_2*py_2*r1_3*r2 + 80*ax*ay*py_2*r1_3*r2 + 32*ay_2*py_2*r1_3*r2 + 18*ax_2*r1_5*r2 - 120*ax*ay*r1_5*r2 - 48*ay_2*r1_5*r2 - 240*ax*px*r1_5*r2 - 24*px_2*r1_5*r2 - 48*px*py*r1_5*r2 - 24*py_2*r1_5*r2 + 32*r1_7*r2 - 49*ax_4*px_2*r2_2 + 70*ax_3*ay*px_2*r2_2 - 53*ax_2*ay_2*px_2*r2_2 + 20*ax*ay_3*px_2*r2_2 - 4*ay_4*px_2*r2_2 - 98*ax_4*px*py*r2_2 - 6*ax_2*ay_2*px*py*r2_2 - 8*ay_4*px*py*r2_2 - 49*ax_4*py_2*r2_2 - 70*ax_3*ay*py_2*r2_2 - 53*ax_2*ay_2*py_2*r2_2 - 20*ax*ay_3*py_2*r2_2 - 4*ay_4*py_2*r2_2 + 294*ax_4*r1_2*r2_2 + 420*ax_3*ay*r1_2*r2_2 + 318*ax_2*ay_2*r1_2*r2_2 + 120*ax*ay_3*r1_2*r2_2 + 24*ay_4*r1_2*r2_2 - 840*ax_3*px*r1_2*r2_2 + 240*ax*ay_2*px*r1_2*r2_2 - 18*ax_2*px_2*r1_2*r2_2 - 120*ax*ay*px_2*r1_2*r2_2 + 48*ay_2*px_2*r1_2*r2_2 - 636*ax_2*px*py*r1_2*r2_2 + 96*ay_2*px*py*r1_2*r2_2 - 18*ax_2*py_2*r1_2*r2_2 + 120*ax*ay*py_2*r1_2*r2_2 + 48*ay_2*py_2*r1_2*r2_2 + 45*ax_2*r1_4*r2_2 - 300*ax*ay*r1_4*r2_2 - 120*ay_2*r1_4*r2_2 - 600*ax*px*r1_4*r2_2 - 60*px_2*r1_4*r2_2 - 120*px*py*r1_4*r2_2 - 60*py_2*r1_4*r2_2 + 112*r1_6*r2_2 + 196*ax_4*r1*r2_3 + 280*ax_3*ay*r1*r2_3 + 212*ax_2*ay_2*r1*r2_3 + 80*ax*ay_3*r1*r2_3 + 16*ay_4*r1*r2_3 - 560*ax_3*px*r1*r2_3 + 160*ax*ay_2*px*r1*r2_3 - 12*ax_2*px_2*r1*r2_3 - 80*ax*ay*px_2*r1*r2_3 + 32*ay_2*px_2*r1*r2_3 - 424*ax_2*px*py*r1*r2_3 + 64*ay_2*px*py*r1*r2_3 - 12*ax_2*py_2*r1*r2_3 + 80*ax*ay*py_2*r1*r2_3 + 32*ay_2*py_2*r1*r2_3 + 60*ax_2*r1_3*r2_3 - 400*ax*ay*r1_3*r2_3 - 160*ay_2*r1_3*r2_3 - 800*ax*px*r1_3*r2_3 - 80*px_2*r1_3*r2_3 - 160*px*py*r1_3*r2_3 - 80*py_2*r1_3*r2_3 + 224*r1_5*r2_3 + 49*ax_4*r2_4 + 70*ax_3*ay*r2_4 + 53*ax_2*ay_2*r2_4 + 20*ax*ay_3*r2_4 + 4*ay_4*r2_4 - 140*ax_3*px*r2_4 + 40*ax*ay_2*px*r2_4 - 3*ax_2*px_2*r2_4 - 20*ax*ay*px_2*r2_4 + 8*ay_2*px_2*r2_4 - 106*ax_2*px*py*r2_4 + 16*ay_2*px*py*r2_4 - 3*ax_2*py_2*r2_4 + 20*ax*ay*py_2*r2_4 + 8*ay_2*py_2*r2_4 + 45*ax_2*r1_2*r2_4 - 300*ax*ay*r1_2*r2_4 - 120*ay_2*r1_2*r2_4 - 600*ax*px*r1_2*r2_4 - 60*px_2*r1_2*r2_4 - 120*px*py*r1_2*r2_4 - 60*py_2*r1_2*r2_4 + 280*r1_4*r2_4 + 18*ax_2*r1*r2_5 - 120*ax*ay*r1*r2_5 - 48*ay_2*r1*r2_5 - 240*ax*px*r1*r2_5 - 24*px_2*r1*r2_5 - 48*px*py*r1*r2_5 - 24*py_2*r1*r2_5 + 224*r1_3*r2_5 + 3*ax_2*r2_6 - 20*ax*ay*r2_6 - 8*ay_2*r2_6 - 40*ax*px*r2_6 - 4*px_2*r2_6 - 8*px*py*r2_6 - 4*py_2*r2_6 + 112*r1_2*r2_6 + 32*r1*r2_7 + 4*r2_8;
+			const double a1 = 42*ax_4*px*r1_2 - 140*ax_3*ay*px*r1_2 - 6*ax_2*ay_2*px*r1_2 - 40*ax*ay_3*px*r1_2 - 48*ay_4*px*r1_2 + 146*ax_3*px_2*r1_2 - 30*ax_2*ay*px_2*r1_2 + 56*ax*ay_2*px_2*r1_2 - 20*ay_3*px_2*r1_2 + 98*ax_4*py*r1_2 + 6*ax_2*ay_2*py*r1_2 + 8*ay_4*py*r1_2 + 212*ax_3*px*py*r1_2 + 192*ax*ay_2*px*py*r1_2 + 146*ax_3*py_2*r1_2 + 30*ax_2*ay*py_2*r1_2 + 56*ax*ay_2*py_2*r1_2 + 20*ay_3*py_2*r1_2 - 6*ax_3*r1_4 - 30*ax_2*ay*r1_4 - 96*ax*ay_2*r1_4 - 20*ay_3*r1_4 + 114*ax_2*px*r1_4 + 40*ax*ay*px*r1_4 + 56*ay_2*px*r1_4 + 56*ax*px_2*r1_4 + 20*ay*px_2*r1_4 + 106*ax_2*py*r1_4 - 16*ay_2*py*r1_4 + 32*ax*px*py*r1_4 + 56*ax*py_2*r1_4 - 20*ay*py_2*r1_4 - 16*ax*r1_6 + 20*ay*r1_6 - 8*px*r1_6 + 8*py*r1_6 + 84*ax_4*px*r1*r2 - 280*ax_3*ay*px*r1*r2 - 12*ax_2*ay_2*px*r1*r2 - 80*ax*ay_3*px*r1*r2 - 96*ay_4*px*r1*r2 + 292*ax_3*px_2*r1*r2 - 60*ax_2*ay*px_2*r1*r2 + 112*ax*ay_2*px_2*r1*r2 - 40*ay_3*px_2*r1*r2 + 196*ax_4*py*r1*r2 + 12*ax_2*ay_2*py*r1*r2 + 16*ay_4*py*r1*r2 + 424*ax_3*px*py*r1*r2 + 384*ax*ay_2*px*py*r1*r2 + 292*ax_3*py_2*r1*r2 + 60*ax_2*ay*py_2*r1*r2 + 112*ax*ay_2*py_2*r1*r2 + 40*ay_3*py_2*r1*r2 - 24*ax_3*r1_3*r2 - 120*ax_2*ay*r1_3*r2 - 384*ax*ay_2*r1_3*r2 - 80*ay_3*r1_3*r2 + 456*ax_2*px*r1_3*r2 + 160*ax*ay*px*r1_3*r2 + 224*ay_2*px*r1_3*r2 + 224*ax*px_2*r1_3*r2 + 80*ay*px_2*r1_3*r2 + 424*ax_2*py*r1_3*r2 - 64*ay_2*py*r1_3*r2 + 128*ax*px*py*r1_3*r2 + 224*ax*py_2*r1_3*r2 - 80*ay*py_2*r1_3*r2 - 96*ax*r1_5*r2 + 120*ay*r1_5*r2 - 48*px*r1_5*r2 + 48*py*r1_5*r2 + 42*ax_4*px*r2_2 - 140*ax_3*ay*px*r2_2 - 6*ax_2*ay_2*px*r2_2 - 40*ax*ay_3*px*r2_2 - 48*ay_4*px*r2_2 + 146*ax_3*px_2*r2_2 - 30*ax_2*ay*px_2*r2_2 + 56*ax*ay_2*px_2*r2_2 - 20*ay_3*px_2*r2_2 + 98*ax_4*py*r2_2 + 6*ax_2*ay_2*py*r2_2 + 8*ay_4*py*r2_2 + 212*ax_3*px*py*r2_2 + 192*ax*ay_2*px*py*r2_2 + 146*ax_3*py_2*r2_2 + 30*ax_2*ay*py_2*r2_2 + 56*ax*ay_2*py_2*r2_2 + 20*ay_3*py_2*r2_2 - 36*ax_3*r1_2*r2_2 - 180*ax_2*ay*r1_2*r2_2 - 576*ax*ay_2*r1_2*r2_2 - 120*ay_3*r1_2*r2_2 + 684*ax_2*px*r1_2*r2_2 + 240*ax*ay*px*r1_2*r2_2 + 336*ay_2*px*r1_2*r2_2 + 336*ax*px_2*r1_2*r2_2 + 120*ay*px_2*r1_2*r2_2 + 636*ax_2*py*r1_2*r2_2 - 96*ay_2*py*r1_2*r2_2 + 192*ax*px*py*r1_2*r2_2 + 336*ax*py_2*r1_2*r2_2 - 120*ay*py_2*r1_2*r2_2 - 240*ax*r1_4*r2_2 + 300*ay*r1_4*r2_2 - 120*px*r1_4*r2_2 + 120*py*r1_4*r2_2 - 24*ax_3*r1*r2_3 - 120*ax_2*ay*r1*r2_3 - 384*ax*ay_2*r1*r2_3 - 80*ay_3*r1*r2_3 + 456*ax_2*px*r1*r2_3 + 160*ax*ay*px*r1*r2_3 + 224*ay_2*px*r1*r2_3 + 224*ax*px_2*r1*r2_3 + 80*ay*px_2*r1*r2_3 + 424*ax_2*py*r1*r2_3 - 64*ay_2*py*r1*r2_3 + 128*ax*px*py*r1*r2_3 + 224*ax*py_2*r1*r2_3 - 80*ay*py_2*r1*r2_3 - 320*ax*r1_3*r2_3 + 400*ay*r1_3*r2_3 - 160*px*r1_3*r2_3 + 160*py*r1_3*r2_3 - 6*ax_3*r2_4 - 30*ax_2*ay*r2_4 - 96*ax*ay_2*r2_4 - 20*ay_3*r2_4 + 114*ax_2*px*r2_4 + 40*ax*ay*px*r2_4 + 56*ay_2*px*r2_4 + 56*ax*px_2*r2_4 + 20*ay*px_2*r2_4 + 106*ax_2*py*r2_4 - 16*ay_2*py*r2_4 + 32*ax*px*py*r2_4 + 56*ax*py_2*r2_4 - 20*ay*py_2*r2_4 - 240*ax*r1_2*r2_4 + 300*ay*r1_2*r2_4 - 120*px*r1_2*r2_4 + 120*py*r1_2*r2_4 - 96*ax*r1*r2_5 + 120*ay*r1*r2_5 - 48*px*r1*r2_5 + 48*py*r1*r2_5 - 16*ax*r2_6 + 20*ay*r2_6 - 8*px*r2_6 + 8*py*r2_6;
+			const double a2 = 53*ax_4*px_2 - 90*ax_3*ay*px_2 + 106*ax_2*ay_2*px_2 - 90*ax*ay_3*px_2 + 53*ay_4*px_2 + 90*ax_4*px*py - 90*ay_4*px*py + 53*ax_4*py_2 + 90*ax_3*ay*py_2 + 106*ax_2*ay_2*py_2 + 90*ax*ay_3*py_2 + 53*ay_4*py_2 - 95*ax_4*r1_2 - 90*ax_3*ay*r1_2 - 100*ax_2*ay_2*r1_2 - 90*ax*ay_3*r1_2 - 5*ay_4*r1_2 + 172*ax_3*px*r1_2 + 60*ax_2*ay*px*r1_2 + 172*ax*ay_2*px*r1_2 + 40*ay_3*px*r1_2 - 135*ax_2*px_2*r1_2 - 40*ax*ay*px_2*r1_2 - 117*ay_2*px_2*r1_2 - 212*ax_3*py*r1_2 - 192*ax*ay_2*py*r1_2 + 58*ax_2*px*py*r1_2 - 22*ay_2*px*py*r1_2 - 135*ax_2*py_2*r1_2 + 40*ax*ay*py_2*r1_2 - 117*ay_2*py_2*r1_2 + 21*ax_2*r1_4 - 40*ax*ay*r1_4 + 61*ay_2*r1_4 + 72*ax*px*r1_4 - 40*ay*px*r1_4 + 8*px_2*r1_4 - 32*ax*py*r1_4 + 8*py_2*r1_4 - 190*ax_4*r1*r2 - 180*ax_3*ay*r1*r2 - 200*ax_2*ay_2*r1*r2 - 180*ax*ay_3*r1*r2 - 10*ay_4*r1*r2 + 344*ax_3*px*r1*r2 + 120*ax_2*ay*px*r1*r2 + 344*ax*ay_2*px*r1*r2 + 80*ay_3*px*r1*r2 - 270*ax_2*px_2*r1*r2 - 80*ax*ay*px_2*r1*r2 - 234*ay_2*px_2*r1*r2 - 424*ax_3*py*r1*r2 - 384*ax*ay_2*py*r1*r2 + 116*ax_2*px*py*r1*r2 - 44*ay_2*px*py*r1*r2 - 270*ax_2*py_2*r1*r2 + 80*ax*ay*py_2*r1*r2 - 234*ay_2*py_2*r1*r2 + 84*ax_2*r1_3*r2 - 160*ax*ay*r1_3*r2 + 244*ay_2*r1_3*r2 + 288*ax*px*r1_3*r2 - 160*ay*px*r1_3*r2 + 32*px_2*r1_3*r2 - 128*ax*py*r1_3*r2 + 32*py_2*r1_3*r2 - 95*ax_4*r2_2 - 90*ax_3*ay*r2_2 - 100*ax_2*ay_2*r2_2 - 90*ax*ay_3*r2_2 - 5*ay_4*r2_2 + 172*ax_3*px*r2_2 + 60*ax_2*ay*px*r2_2 + 172*ax*ay_2*px*r2_2 + 40*ay_3*px*r2_2 - 135*ax_2*px_2*r2_2 - 40*ax*ay*px_2*r2_2 - 117*ay_2*px_2*r2_2 - 212*ax_3*py*r2_2 - 192*ax*ay_2*py*r2_2 + 58*ax_2*px*py*r2_2 - 22*ay_2*px*py*r2_2 - 135*ax_2*py_2*r2_2 + 40*ax*ay*py_2*r2_2 - 117*ay_2*py_2*r2_2 + 126*ax_2*r1_2*r2_2 - 240*ax*ay*r1_2*r2_2 + 366*ay_2*r1_2*r2_2 + 432*ax*px*r1_2*r2_2 - 240*ay*px*r1_2*r2_2 + 48*px_2*r1_2*r2_2 - 192*ax*py*r1_2*r2_2 + 48*py_2*r1_2*r2_2 + 84*ax_2*r1*r2_3 - 160*ax*ay*r1*r2_3 + 244*ay_2*r1*r2_3 + 288*ax*px*r1*r2_3 - 160*ay*px*r1*r2_3 + 32*px_2*r1*r2_3 - 128*ax*py*r1*r2_3 + 32*py_2*r1*r2_3 + 21*ax_2*r2_4 - 40*ax*ay*r2_4 + 61*ay_2*r2_4 + 72*ax*px*r2_4 - 40*ay*px*r2_4 + 8*px_2*r2_4 - 32*ax*py*r2_4 + 8*py_2*r2_4;
+			const double a3 = -50*ax_4*px + 180*ax_3*ay*px - 100*ax_2*ay_2*px + 180*ax*ay_3*px - 50*ay_4*px - 162*ax_3*px_2 + 90*ax_2*ay*px_2 - 162*ax*ay_2*px_2 + 90*ay_3*px_2 - 90*ax_4*py + 90*ay_4*py - 180*ax_3*px*py - 180*ax*ay_2*px*py - 162*ax_3*py_2 - 90*ax_2*ay*py_2 - 162*ax*ay_2*py_2 - 90*ay_3*py_2 - 10*ax_3*r1_2 + 90*ax_2*ay*r1_2 - 10*ax*ay_2*r1_2 + 90*ay_3*r1_2 - 162*ax_2*px*r1_2 + 80*ax*ay*px*r1_2 - 162*ay_2*px*r1_2 - 72*ax*px_2*r1_2 - 58*ax_2*py*r1_2 + 22*ay_2*py*r1_2 - 72*ax*py_2*r1_2 - 20*ax_3*r1*r2 + 180*ax_2*ay*r1*r2 - 20*ax*ay_2*r1*r2 + 180*ay_3*r1*r2 - 324*ax_2*px*r1*r2 + 160*ax*ay*px*r1*r2 - 324*ay_2*px*r1*r2 - 144*ax*px_2*r1*r2 - 116*ax_2*py*r1*r2 + 44*ay_2*py*r1*r2 - 144*ax*py_2*r1*r2 - 10*ax_3*r2_2 + 90*ax_2*ay*r2_2 - 10*ax*ay_2*r2_2 + 90*ay_3*r2_2 - 162*ax_2*px*r2_2 + 80*ax*ay*px*r2_2 - 162*ay_2*px*r2_2 - 72*ax*px_2*r2_2 - 58*ax_2*py*r2_2 + 22*ay_2*py*r2_2 - 72*ax*py_2*r2_2;
+			const double a4 = 50*ax_4 + 100*ax_2*ay_2 + 50*ay_4 - 180*ax_2*ay*px - 180*ay_3*px + 162*ax_2*px_2 + 162*ay_2*px_2 + 180*ax_3*py + 180*ax*ay_2*py + 162*ax_2*py_2 + 162*ay_2*py_2;
+
+
+//			std::cout << "a0 " << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4 << std::endl;
+			std::vector<double> coefficients{a0, a1, a2, a3, a4};
+			std::list<double> roots;
+			billiards::shots::math::compute_roots(coefficients, roots);
+			for (const double x : roots) {
+//				std::cout << "x = " << x << std::endl;
+				const double y_rad = std::pow(r1 + r2, 2) - std::pow(x, 2);
+				if (y_rad < 0) {
+					continue;
 				}
-			);
+				const double y = std::sqrt(y_rad);
+
+
+				const double b0 = px_2 + py_2 - r1_2 - 2*px*x + std::pow(x, 2) - 2*py*y + std::pow(y, 2);
+				const double b1 = -px_2 - py_2 + 2*px*x - std::pow(x, 2) + 2*py*y - std::pow(y, 2);
+				const double b2 = 1/ (double) 2*px_2 + 1/ (double) 2*py_2 - px*x + 1/ (double) 2*std::pow(x, 2) - py*y + 1/ (double) 2*std::pow(y, 2);
+
+				std::cout << "b " << b0 << ", " << b1 << ", " << b2 << std::endl;
+
+				std::vector<double> u_coefficients{b0, b1, b2};
+				std::list<double> u_roots;
+				billiards::shots::math::compute_roots(u_coefficients, u_roots);
+				for (const double u : u_roots) {
+					std::cout << "x=" << x << ", y=" << y << ", u=" << u << std::endl;
+				}
+			}
 		}
 
-		// if px * y - py * x < 0
 		{
-			const double a00 = -r12 - 2*r1*r2 - r22;
-			const double a10 = 0;
-			const double a01 = 0;
-			const double a20 = 1;
-			const double a11 = 0;
-			const double a02 = 1;
-			const double b00 = 0;
-			const double b10 = -5/(double) 14*std::pow(ax, 2)*px - 1/(double) 7*ax*ay*px - 1/(double) 2*std::pow(ay, 2)*px - 5/(double) 14*std::pow(ax, 2)*py + 1/(double) 7*ax*ay*py - 1/(double) 2*std::pow(ay, 2)*py;
-			const double b01 = 1/(double) 2*std::pow(ax, 2)*px + 1/(double) 7*ax*ay*px + 5/(double) 14*std::pow(ay, 2)*px - 1/(double) 2*std::pow(ax, 2)*py + 1/(double) 7*ax*ay*py - 5/(double) 14*std::pow(ay, 2)*py;
-			const double b20 = 2/(double) 7*ax*ay;
-			const double b11 = -2/(double) 7*std::pow(ax, 2) + 2/(double) 7*std::pow(ay, 2);
-			const double b02 = -2/(double) 7*ax*ay;
-			const auto get_glance = [&](const double x, const double y) {
-				return KissToPocketSolution{
-					x, y,
-					1/(double) 2*px + 1/(double) 2*py - y, -1/(double) 2*px + 1/(double) 2*py + x,
-					-y, x,
-					ax - x, ay - y
-				};
-			};
-			billiards::math::solve_22_22(
-				a00, a10, a01, a20, a11, a02,
-				b00, b10, b01, b20, b11, b02,
-				M_PI, M_PI,
-				[&](const double x, const double y) {
-					if (px * y - py * x < 0) {
-						return;
-					}
-					print_receiver(get_glance(x, y));
-				}
-			);
-		}
+			const double a0 = -49*ax_4*px_2*r1_2 - 70*ax_3*ay*px_2*r1_2 - 53*ax_2*ay_2*px_2*r1_2 - 20*ax*ay_3*px_2*r1_2 - 4*ay_4*px_2*r1_2 + 98*ax_4*px*py*r1_2 + 6*ax_2*ay_2*px*py*r1_2 + 8*ay_4*px*py*r1_2 - 49*ax_4*py_2*r1_2 + 70*ax_3*ay*py_2*r1_2 - 53*ax_2*ay_2*py_2*r1_2 + 20*ax*ay_3*py_2*r1_2 - 4*ay_4*py_2*r1_2 + 100*ax_2*ay_2*r1_4 - 140*ax_3*px*r1_4 + 40*ax*ay_2*px*r1_4 - 3*ax_2*px_2*r1_4 + 20*ax*ay*px_2*r1_4 + 8*ay_2*px_2*r1_4 + 140*ax_3*py*r1_4 - 40*ax*ay_2*py*r1_4 + 106*ax_2*px*py*r1_4 - 16*ay_2*px*py*r1_4 - 3*ax_2*py_2*r1_4 - 20*ax*ay*py_2*r1_4 + 8*ay_2*py_2*r1_4 - 100*ax_2*r1_6 - 40*ax*px*r1_6 - 4*px_2*r1_6 + 40*ax*py*r1_6 + 8*px*py*r1_6 - 4*py_2*r1_6 - 98*ax_4*px_2*r1*r2 - 140*ax_3*ay*px_2*r1*r2 - 106*ax_2*ay_2*px_2*r1*r2 - 40*ax*ay_3*px_2*r1*r2 - 8*ay_4*px_2*r1*r2 + 196*ax_4*px*py*r1*r2 + 12*ax_2*ay_2*px*py*r1*r2 + 16*ay_4*px*py*r1*r2 - 98*ax_4*py_2*r1*r2 + 140*ax_3*ay*py_2*r1*r2 - 106*ax_2*ay_2*py_2*r1*r2 + 40*ax*ay_3*py_2*r1*r2 - 8*ay_4*py_2*r1*r2 + 400*ax_2*ay_2*r1_3*r2 - 560*ax_3*px*r1_3*r2 + 160*ax*ay_2*px*r1_3*r2 - 12*ax_2*px_2*r1_3*r2 + 80*ax*ay*px_2*r1_3*r2 + 32*ay_2*px_2*r1_3*r2 + 560*ax_3*py*r1_3*r2 - 160*ax*ay_2*py*r1_3*r2 + 424*ax_2*px*py*r1_3*r2 - 64*ay_2*px*py*r1_3*r2 - 12*ax_2*py_2*r1_3*r2 - 80*ax*ay*py_2*r1_3*r2 + 32*ay_2*py_2*r1_3*r2 - 600*ax_2*r1_5*r2 - 240*ax*px*r1_5*r2 - 24*px_2*r1_5*r2 + 240*ax*py*r1_5*r2 + 48*px*py*r1_5*r2 - 24*py_2*r1_5*r2 - 49*ax_4*px_2*r2_2 - 70*ax_3*ay*px_2*r2_2 - 53*ax_2*ay_2*px_2*r2_2 - 20*ax*ay_3*px_2*r2_2 - 4*ay_4*px_2*r2_2 + 98*ax_4*px*py*r2_2 + 6*ax_2*ay_2*px*py*r2_2 + 8*ay_4*px*py*r2_2 - 49*ax_4*py_2*r2_2 + 70*ax_3*ay*py_2*r2_2 - 53*ax_2*ay_2*py_2*r2_2 + 20*ax*ay_3*py_2*r2_2 - 4*ay_4*py_2*r2_2 + 600*ax_2*ay_2*r1_2*r2_2 - 840*ax_3*px*r1_2*r2_2 + 240*ax*ay_2*px*r1_2*r2_2 - 18*ax_2*px_2*r1_2*r2_2 + 120*ax*ay*px_2*r1_2*r2_2 + 48*ay_2*px_2*r1_2*r2_2 + 840*ax_3*py*r1_2*r2_2 - 240*ax*ay_2*py*r1_2*r2_2 + 636*ax_2*px*py*r1_2*r2_2 - 96*ay_2*px*py*r1_2*r2_2 - 18*ax_2*py_2*r1_2*r2_2 - 120*ax*ay*py_2*r1_2*r2_2 + 48*ay_2*py_2*r1_2*r2_2 - 1500*ax_2*r1_4*r2_2 - 600*ax*px*r1_4*r2_2 - 60*px_2*r1_4*r2_2 + 600*ax*py*r1_4*r2_2 + 120*px*py*r1_4*r2_2 - 60*py_2*r1_4*r2_2 + 400*ax_2*ay_2*r1*r2_3 - 560*ax_3*px*r1*r2_3 + 160*ax*ay_2*px*r1*r2_3 - 12*ax_2*px_2*r1*r2_3 + 80*ax*ay*px_2*r1*r2_3 + 32*ay_2*px_2*r1*r2_3 + 560*ax_3*py*r1*r2_3 - 160*ax*ay_2*py*r1*r2_3 + 424*ax_2*px*py*r1*r2_3 - 64*ay_2*px*py*r1*r2_3 - 12*ax_2*py_2*r1*r2_3 - 80*ax*ay*py_2*r1*r2_3 + 32*ay_2*py_2*r1*r2_3 - 2000*ax_2*r1_3*r2_3 - 800*ax*px*r1_3*r2_3 - 80*px_2*r1_3*r2_3 + 800*ax*py*r1_3*r2_3 + 160*px*py*r1_3*r2_3 - 80*py_2*r1_3*r2_3 + 100*ax_2*ay_2*r2_4 - 140*ax_3*px*r2_4 + 40*ax*ay_2*px*r2_4 - 3*ax_2*px_2*r2_4 + 20*ax*ay*px_2*r2_4 + 8*ay_2*px_2*r2_4 + 140*ax_3*py*r2_4 - 40*ax*ay_2*py*r2_4 + 106*ax_2*px*py*r2_4 - 16*ay_2*px*py*r2_4 - 3*ax_2*py_2*r2_4 - 20*ax*ay*py_2*r2_4 + 8*ay_2*py_2*r2_4 - 1500*ax_2*r1_2*r2_4 - 600*ax*px*r1_2*r2_4 - 60*px_2*r1_2*r2_4 + 600*ax*py*r1_2*r2_4 + 120*px*py*r1_2*r2_4 - 60*py_2*r1_2*r2_4 - 600*ax_2*r1*r2_5 - 240*ax*px*r1*r2_5 - 24*px_2*r1*r2_5 + 240*ax*py*r1*r2_5 + 48*px*py*r1*r2_5 - 24*py_2*r1*r2_5 - 100*ax_2*r2_6 - 40*ax*px*r2_6 - 4*px_2*r2_6 + 40*ax*py*r2_6 + 8*px*py*r2_6 - 4*py_2*r2_6;
+			const double a1 = 140*ax_4*px*r1_2 + 140*ax_3*ay*px*r1_2 + 40*ax*ay_3*px*r1_2 - 40*ay_4*px*r1_2 + 146*ax_3*px_2*r1_2 + 30*ax_2*ay*px_2*r1_2 + 56*ax*ay_2*px_2*r1_2 + 20*ay_3*px_2*r1_2 - 140*ax_4*py*r1_2 + 140*ax_3*ay*py*r1_2 + 40*ax*ay_3*py*r1_2 + 40*ay_4*py*r1_2 - 212*ax_3*px*py*r1_2 - 192*ax*ay_2*px*py*r1_2 + 146*ax_3*py_2*r1_2 - 30*ax_2*ay*py_2*r1_2 + 56*ax*ay_2*py_2*r1_2 - 20*ay_3*py_2*r1_2 + 200*ax_3*r1_4 + 220*ax_2*px*r1_4 - 40*ax*ay*px*r1_4 + 40*ay_2*px*r1_4 + 56*ax*px_2*r1_4 - 20*ay*px_2*r1_4 - 220*ax_2*py*r1_4 - 40*ax*ay*py*r1_4 - 40*ay_2*py*r1_4 - 32*ax*px*py*r1_4 + 56*ax*py_2*r1_4 + 20*ay*py_2*r1_4 + 280*ax_4*px*r1*r2 + 280*ax_3*ay*px*r1*r2 + 80*ax*ay_3*px*r1*r2 - 80*ay_4*px*r1*r2 + 292*ax_3*px_2*r1*r2 + 60*ax_2*ay*px_2*r1*r2 + 112*ax*ay_2*px_2*r1*r2 + 40*ay_3*px_2*r1*r2 - 280*ax_4*py*r1*r2 + 280*ax_3*ay*py*r1*r2 + 80*ax*ay_3*py*r1*r2 + 80*ay_4*py*r1*r2 - 424*ax_3*px*py*r1*r2 - 384*ax*ay_2*px*py*r1*r2 + 292*ax_3*py_2*r1*r2 - 60*ax_2*ay*py_2*r1*r2 + 112*ax*ay_2*py_2*r1*r2 - 40*ay_3*py_2*r1*r2 + 800*ax_3*r1_3*r2 + 880*ax_2*px*r1_3*r2 - 160*ax*ay*px*r1_3*r2 + 160*ay_2*px*r1_3*r2 + 224*ax*px_2*r1_3*r2 - 80*ay*px_2*r1_3*r2 - 880*ax_2*py*r1_3*r2 - 160*ax*ay*py*r1_3*r2 - 160*ay_2*py*r1_3*r2 - 128*ax*px*py*r1_3*r2 + 224*ax*py_2*r1_3*r2 + 80*ay*py_2*r1_3*r2 + 140*ax_4*px*r2_2 + 140*ax_3*ay*px*r2_2 + 40*ax*ay_3*px*r2_2 - 40*ay_4*px*r2_2 + 146*ax_3*px_2*r2_2 + 30*ax_2*ay*px_2*r2_2 + 56*ax*ay_2*px_2*r2_2 + 20*ay_3*px_2*r2_2 - 140*ax_4*py*r2_2 + 140*ax_3*ay*py*r2_2 + 40*ax*ay_3*py*r2_2 + 40*ay_4*py*r2_2 - 212*ax_3*px*py*r2_2 - 192*ax*ay_2*px*py*r2_2 + 146*ax_3*py_2*r2_2 - 30*ax_2*ay*py_2*r2_2 + 56*ax*ay_2*py_2*r2_2 - 20*ay_3*py_2*r2_2 + 1200*ax_3*r1_2*r2_2 + 1320*ax_2*px*r1_2*r2_2 - 240*ax*ay*px*r1_2*r2_2 + 240*ay_2*px*r1_2*r2_2 + 336*ax*px_2*r1_2*r2_2 - 120*ay*px_2*r1_2*r2_2 - 1320*ax_2*py*r1_2*r2_2 - 240*ax*ay*py*r1_2*r2_2 - 240*ay_2*py*r1_2*r2_2 - 192*ax*px*py*r1_2*r2_2 + 336*ax*py_2*r1_2*r2_2 + 120*ay*py_2*r1_2*r2_2 + 800*ax_3*r1*r2_3 + 880*ax_2*px*r1*r2_3 - 160*ax*ay*px*r1*r2_3 + 160*ay_2*px*r1*r2_3 + 224*ax*px_2*r1*r2_3 - 80*ay*px_2*r1*r2_3 - 880*ax_2*py*r1*r2_3 - 160*ax*ay*py*r1*r2_3 - 160*ay_2*py*r1*r2_3 - 128*ax*px*py*r1*r2_3 + 224*ax*py_2*r1*r2_3 + 80*ay*py_2*r1*r2_3 + 200*ax_3*r2_4 + 220*ax_2*px*r2_4 - 40*ax*ay*px*r2_4 + 40*ay_2*px*r2_4 + 56*ax*px_2*r2_4 - 20*ay*px_2*r2_4 - 220*ax_2*py*r2_4 - 40*ax*ay*py*r2_4 - 40*ay_2*py*r2_4 - 32*ax*px*py*r2_4 + 56*ax*py_2*r2_4 + 20*ay*py_2*r2_4;
+			const double a2 = 53*ax_4*px_2 + 90*ax_3*ay*px_2 + 106*ax_2*ay_2*px_2 + 90*ax*ay_3*px_2 + 53*ay_4*px_2 - 90*ax_4*px*py + 90*ay_4*px*py + 53*ax_4*py_2 - 90*ax_3*ay*py_2 + 106*ax_2*ay_2*py_2 - 90*ax*ay_3*py_2 + 53*ay_4*py_2 - 100*ax_4*r1_2 - 200*ax_2*ay_2*r1_2 - 100*ay_4*r1_2 - 40*ax_3*px*r1_2 - 60*ax_2*ay*px*r1_2 - 20*ax*ay_2*px*r1_2 - 40*ay_3*px*r1_2 - 135*ax_2*px_2*r1_2 + 40*ax*ay*px_2*r1_2 - 117*ay_2*px_2*r1_2 + 40*ax_3*py*r1_2 - 60*ax_2*ay*py*r1_2 + 20*ax*ay_2*py*r1_2 - 40*ay_3*py*r1_2 - 58*ax_2*px*py*r1_2 + 22*ay_2*px*py*r1_2 - 135*ax_2*py_2*r1_2 - 40*ax*ay*py_2*r1_2 - 117*ay_2*py_2*r1_2 + 100*ax_2*r1_4 + 100*ay_2*r1_4 + 40*ax*px*r1_4 + 40*ay*px*r1_4 + 8*px_2*r1_4 - 40*ax*py*r1_4 + 40*ay*py*r1_4 + 8*py_2*r1_4 - 200*ax_4*r1*r2 - 400*ax_2*ay_2*r1*r2 - 200*ay_4*r1*r2 - 80*ax_3*px*r1*r2 - 120*ax_2*ay*px*r1*r2 - 40*ax*ay_2*px*r1*r2 - 80*ay_3*px*r1*r2 - 270*ax_2*px_2*r1*r2 + 80*ax*ay*px_2*r1*r2 - 234*ay_2*px_2*r1*r2 + 80*ax_3*py*r1*r2 - 120*ax_2*ay*py*r1*r2 + 40*ax*ay_2*py*r1*r2 - 80*ay_3*py*r1*r2 - 116*ax_2*px*py*r1*r2 + 44*ay_2*px*py*r1*r2 - 270*ax_2*py_2*r1*r2 - 80*ax*ay*py_2*r1*r2 - 234*ay_2*py_2*r1*r2 + 400*ax_2*r1_3*r2 + 400*ay_2*r1_3*r2 + 160*ax*px*r1_3*r2 + 160*ay*px*r1_3*r2 + 32*px_2*r1_3*r2 - 160*ax*py*r1_3*r2 + 160*ay*py*r1_3*r2 + 32*py_2*r1_3*r2 - 100*ax_4*r2_2 - 200*ax_2*ay_2*r2_2 - 100*ay_4*r2_2 - 40*ax_3*px*r2_2 - 60*ax_2*ay*px*r2_2 - 20*ax*ay_2*px*r2_2 - 40*ay_3*px*r2_2 - 135*ax_2*px_2*r2_2 + 40*ax*ay*px_2*r2_2 - 117*ay_2*px_2*r2_2 + 40*ax_3*py*r2_2 - 60*ax_2*ay*py*r2_2 + 20*ax*ay_2*py*r2_2 - 40*ay_3*py*r2_2 - 58*ax_2*px*py*r2_2 + 22*ay_2*px*py*r2_2 - 135*ax_2*py_2*r2_2 - 40*ax*ay*py_2*r2_2 - 117*ay_2*py_2*r2_2 + 600*ax_2*r1_2*r2_2 + 600*ay_2*r1_2*r2_2 + 240*ax*px*r1_2*r2_2 + 240*ay*px*r1_2*r2_2 + 48*px_2*r1_2*r2_2 - 240*ax*py*r1_2*r2_2 + 240*ay*py*r1_2*r2_2 + 48*py_2*r1_2*r2_2 + 400*ax_2*r1*r2_3 + 400*ay_2*r1*r2_3 + 160*ax*px*r1*r2_3 + 160*ay*px*r1*r2_3 + 32*px_2*r1*r2_3 - 160*ax*py*r1*r2_3 + 160*ay*py*r1*r2_3 + 32*py_2*r1*r2_3 + 100*ax_2*r2_4 + 100*ay_2*r2_4 + 40*ax*px*r2_4 + 40*ay*px*r2_4 + 8*px_2*r2_4 - 40*ax*py*r2_4 + 40*ay*py*r2_4 + 8*py_2*r2_4;
+			const double a3 = -140*ax_4*px - 180*ax_3*ay*px - 100*ax_2*ay_2*px - 180*ax*ay_3*px + 40*ay_4*px - 162*ax_3*px_2 - 90*ax_2*ay*px_2 - 162*ax*ay_2*px_2 - 90*ay_3*px_2 + 140*ax_4*py - 180*ax_3*ay*py + 100*ax_2*ay_2*py - 180*ax*ay_3*py - 40*ay_4*py + 180*ax_3*px*py + 180*ax*ay_2*px*py - 162*ax_3*py_2 + 90*ax_2*ay*py_2 - 162*ax*ay_2*py_2 + 90*ay_3*py_2 - 200*ax_3*r1_2 - 200*ax*ay_2*r1_2 - 220*ax_2*px*r1_2 - 80*ax*ay*px*r1_2 - 140*ay_2*px*r1_2 - 72*ax*px_2*r1_2 + 220*ax_2*py*r1_2 - 80*ax*ay*py*r1_2 + 140*ay_2*py*r1_2 - 72*ax*py_2*r1_2 - 400*ax_3*r1*r2 - 400*ax*ay_2*r1*r2 - 440*ax_2*px*r1*r2 - 160*ax*ay*px*r1*r2 - 280*ay_2*px*r1*r2 - 144*ax*px_2*r1*r2 + 440*ax_2*py*r1*r2 - 160*ax*ay*py*r1*r2 + 280*ay_2*py*r1*r2 - 144*ax*py_2*r1*r2 - 200*ax_3*r2_2 - 200*ax*ay_2*r2_2 - 220*ax_2*px*r2_2 - 80*ax*ay*px*r2_2 - 140*ay_2*px*r2_2 - 72*ax*px_2*r2_2 + 220*ax_2*py*r2_2 - 80*ax*ay*py*r2_2 + 140*ay_2*py*r2_2 - 72*ax*py_2*r2_2;
+			const double a4 = 100*ax_4 + 200*ax_2*ay_2 + 100*ay_4 + 180*ax_3*px + 180*ax_2*ay*px + 180*ax*ay_2*px + 180*ay_3*px + 162*ax_2*px_2 + 162*ay_2*px_2 - 180*ax_3*py + 180*ax_2*ay*py - 180*ax*ay_2*py + 180*ay_3*py + 162*ax_2*py_2 + 162*ay_2*py_2;
 
+//			std::cout << "a0 " << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4 << std::endl;
+
+			std::vector<double> coefficients{a0, a1, a2, a3, a4};
+			std::list<double> roots;
+			billiards::shots::math::compute_roots(coefficients, roots);
+			for (const double x : roots) {
+//				std::cout << "x = " << x << std::endl;
+				const double y_rad = std::pow(r1 + r2, 2) - std::pow(x, 2);
+				if (y_rad < 0) {
+					continue;
+				}
+				const double y = std::sqrt(y_rad);
+
+				const double b0 = px_2 + py_2 - r1_2 - 2*px*x + std::pow(x, 2) - 2*py*y + std::pow(y, 2);
+				const double b1 = -px_2 - py_2 + px*x - py*x + px*y + py*y;
+				const double b2 = 1/ (double) 2*px_2 + 1/ (double) 2*py_2 - px*x + py*x + std::pow(x, 2) - px*y - py*y + std::pow(y, 2);
+
+				std::cout << "b " << b0 << ", " << b1 << ", " << b2 << std::endl;
+
+				std::vector<double> u_coefficients{b0, b1, b2};
+				std::list<double> u_roots;
+
+				billiards::shots::math::compute_roots(u_coefficients, u_roots);
+				for (const double u : u_roots) {
+					std::cout << "x=" << x << ", y=" << y << ", u=" << u << std::endl;
+				}
+			}
+		}
 	}
 
 
@@ -235,76 +229,4 @@ docker run -v $(realpath $REPOS/billiards-scripts/sage/scripts):/home/sage/scrip
 	}
 }
 
-
-/*
- *
-
-		{
-			const double a00 = -r12 - 2*r1*r2 - r22;
-			const double a10 = 0;
-			const double a01 = 0;
-			const double a20 = 1;
-			const double a11 = 0;
-			const double a02 = 1;
-			const double b00 = 0;
-			const double b10 = 5/(double) 14*std::pow(ax, 2)*px - 1/(double) 7*ax*ay*px + 1/(double) 2*std::pow(ay, 2)*px - 5/(double) 14*std::pow(ax, 2)*py - 1/(double) 7*ax*ay*py - 1/(double) 2*std::pow(ay, 2)*py;
-			const double b01 = 1/(double) 2*std::pow(ax, 2)*px - 1/(double) 7*ax*ay*px + 5/(double) 14*std::pow(ay, 2)*px + 1/(double) 2*std::pow(ax, 2)*py + 1/(double) 7*ax*ay*py + 5/(double) 14*std::pow(ay, 2)*py;
-			const double b20 = -5/(double) 14*std::pow(ax, 2) + 1/(double) 7*ax*ay - 1/(double) 2*std::pow(ay, 2);
-			const double b11 = -1/(double) 7*std::pow(ax, 2) + 2/(double) 7*ax*ay + 1/(double) 7*std::pow(ay, 2);
-			const double b02 = -1/(double) 2*std::pow(ax, 2) - 1/(double) 7*ax*ay - 5/(double) 14*std::pow(ay, 2);
-
-			billiards::math::solve_22_22(
-				a00, a10, a01, a20, a11, a02,
-				b00, b10, b01, b20, b11, b02,
-				M_PI, M_PI,
-				print_receiver
-			);
-		}
-		{
-			const double a00 = -r12 - 2*r1*r2 - r22;
-			const double a10 = 0;
-			const double a01 = 0;
-			const double a20 = 1;
-			const double a11 = 0;
-			const double a02 = 1;
-			const double b00 = 0;
-			const double b10 = -5/(double) 14*std::pow(ax, 2)*px - 1/(double) 7*ax*ay*px - 1/(double) 2*std::pow(ay, 2)*px - 5/(double) 14*std::pow(ax, 2)*py + 1/(double) 7*ax*ay*py - 1/(double) 2*std::pow(ay, 2)*py;
-			const double b01 = 1/(double) 2*std::pow(ax, 2)*px + 1/(double) 7*ax*ay*px + 5/(double) 14*std::pow(ay, 2)*px - 1/(double) 2*std::pow(ax, 2)*py + 1/(double) 7*ax*ay*py - 5/(double) 14*std::pow(ay, 2)*py;
-			const double b20 = 2/(double) 7*ax*ay;
-			const double b11 = -2/(double) 7*std::pow(ax, 2) + 2/(double) 7*std::pow(ay, 2);
-			const double b02 = -2/(double) 7*ax*ay;
-
-		}
-		const auto print_receiver = [&](const double x, const double y) {
-			std::cout << "found solution x=" << x << ", y=" << y << std::endl;
-			std::cout << "radius: " << std::sqrt(x * x + y * y) << std::endl;
-
-			check_sol(KissToPocketSolution{
-				x, y,
-				1/2*px + 1/2*py - y, -1/2*px + 1/2*py + x,
-				y, -x,
-				ax - x, ay - y
-			});
-		};
-		const auto x_receiver = [&](const double x) {
-			// if px * y - py * x > 0
-			// tangent direction (tx, ty) = [y, -x]
-			// destination direction (dx, dy) = (1/2*px - 1/2*py + 1/2*x + 1/2*y,1/2*px + 1/2*py - 1/2*x + 1/2*y)
-			// computed orthogonal requirement: s1=-(ay*x - ax*y)/(ax^2 + ay^2)
-			// computed rolling requirement: poly_d=5*ax^2*px*x - 2*ax*ay*px*x + 7*ay^2*px*x - 5*ax^2*py*x - 2*ax*ay*py*x - 7*ay^2*py*x + 5*ax^2*x^2 + 2*ax*ay*x^2 + 7*ay^2*x^2 + 7*ax^2*px*y - 2*ax*ay*px*y + 5*ay^2*px*y + 7*ax^2*py*y + 2*ax*ay*py*y + 5*ay^2*py*y - 2*ax^2*x*y - 4*ax*ay*x*y + 2*ay^2*x*y + 7*ax^2*y^2 - 2*ax*ay*y^2 + 5*ay^2*y^2
-			// first resultant polynomial: 1/4*px^4 + 1/4*py^4 + 1/4*r1^4 - r1^3*r2 + 1/2*r1^2*r2^2 + r1*r2^3 + 1/4*r2^4 - px^3*x + 1/2*(py^2 - r1^2 + 2*r1*r2 + r2^2 + 2*x^2)*px^2 - 1/2*(3*r1^2 + 2*r1*r2 + r2^2 - 2*x^2)*py^2 - (py^2*x - (r1^2 - 2*r1*r2 - r2^2)*x)*px
-			// second resultant polynomial: 1/16*px^8 + 1/16*py^8 + 1/16*r1^8 - 1/2*r1^7*r2 + 1/4*px^6*r2^2 + 3/8*px^4*r2^4 + 1/4*px^2*r2^6 + 1/16*r2^8 + 1/4*(px^2 - 3*r1^2 - 2*r1*r2 - r2^2)*py^6 - 1/4*(px^2 - 5*r2^2)*r1^6 + 1/2*(3*px^2*r2 - r2^3)*r1^5 + 1/8*(3*px^4 + 19*r1^4 + 20*r1^3*r2 - 2*px^2*r2^2 + 3*r2^4 - 2*(7*px^2 - 11*r2^2)*r1^2 - 4*(px^2*r2 - 3*r2^3)*r1)*py^4 + 1/8*(3*px^4 - 18*px^2*r2^2 - 13*r2^4)*r1^4 + (px^4 + 2*px^2*py^2 + py^4)*x^4 - 1/2*(3*px^4*r2 + 2*px^2*r2^3 - r2^5)*r1^3 - 2*(px^5 + px*py^4 - px^3*r1^2 + 2*px^3*r1*r2 + px^3*r2^2 + (2*px^3 - px*r1^2 + 2*px*r1*r2 + px*r2^2)*py^2)*x^3 + 1/4*(px^6 - 3*r1^6 + 10*r1^5*r2 + px^4*r2^2 - px^2*r2^4 - r2^6 + (7*px^2 + r2^2)*r1^4 - 12*(px^2*r2 + r2^3)*r1^3 - (5*px^4 + 10*px^2*r2^2 + 13*r2^4)*r1^2 + 2*(px^4*r2 - 2*px^2*r2^3 - 3*r2^5)*r1)*py^2 - 1/4*(px^6 - 3*px^4*r2^2 - 9*px^2*r2^4 - 5*r2^6)*r1^2 + 1/2*(3*px^6 + py^6 + 3*px^2*r1^4 - 12*px^2*r1^3*r2 + 6*px^4*r2^2 + 3*px^2*r2^4 + (5*px^2 - 6*r1^2 - 4*r1*r2 - 2*r2^2)*py^4 + (7*px^4 + r1^4 - 4*r1^3*r2 + 4*px^2*r2^2 + r2^4 - 2*(6*px^2 - r2^2)*r1^2 + 4*(2*px^2*r2 + r2^3)*r1)*py^2 - 6*(px^4 - px^2*r2^2)*r1^2 + 12*(px^4*r2 + px^2*r2^3)*r1)*x^2 + 1/2*(px^6*r2 + 3*px^4*r2^3 + 3*px^2*r2^5 + r2^7)*r1 - 1/2*(px^7 + px*py^6 - px*r1^6 + 6*px*r1^5*r2 + 3*px^5*r2^2 + 3*px^3*r2^4 + px*r2^6 + (3*px^3 - 7*px*r1^2 - 2*px*r1*r2 - px*r2^2)*py^4 + 3*(px^3 - 3*px*r2^2)*r1^4 - 4*(3*px^3*r2 + px*r2^3)*r1^3 + (3*px^5 + 7*px*r1^4 - 12*px*r1^3*r2 + 2*px^3*r2^2 - px*r2^4 - 10*(px^3 + px*r2^2)*r1^2 + 4*(px^3*r2 - px*r2^3)*r1)*py^2 - 3*(px^5 - 2*px^3*r2^2 - 3*px*r2^4)*r1^2 + 6*(px^5*r2 + 2*px^3*r2^3 + px*r2^5)*r1)*x
-			// final resultant polynomial: 1/16*(px^4 + 2*px^2*py^2 + py^4 - 2*px^2*r1^2 - 6*py^2*r1^2 + r1^4 + 4*px^2*r1*r2 - 4*py^2*r1*r2 - 4*r1^3*r2 + 2*px^2*r2^2 - 2*py^2*r2^2 + 2*r1^2*r2^2 + 4*r1*r2^3 + r2^4 - 4*px^3*x - 4*px*py^2*x + 4*px*r1^2*x - 8*px*r1*r2*x - 4*px*r2^2*x + 4*px^2*x^2 + 4*py^2*x^2)^2
-
-			const double y = std::sqrt(std::pow((r1 + r2), 2) - x * x);
-			// TODO: move dx, dy to be along the correct line...
-			check_sol(KissToPocketSolution{
-				x, y,
-				0.5 * (px - py + x + y), 0.5 * (px + py - x + y),
-				y, -x,
-				ax - x, ay - y
-			});
-		};
-
- */
 #endif //IDEA_ROLLING_GLANCE_UNKNOWN_DEST_H

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <Eigen/Dense>
+#include <list>
 
 #include "billiards_common/geometry/tolerance.h"
 
@@ -14,8 +15,9 @@ namespace billiards::shots::math {
 	inline
 	void compute_roots(
 		const std::vector<double>& coefficients,
-		const std::function<void(const double)>& receiver
+		std::list<double>& roots
 	) {
+		roots.clear();
 		int degree = (int) coefficients.size() - 1;
 		while (degree > 0 && std::abs(coefficients[degree]) < TOLERANCE) {
 			--degree;
@@ -24,7 +26,7 @@ namespace billiards::shots::math {
 			return;
 		} else if (degree == 0) {
 			if (std::abs(coefficients[0]) < TOLERANCE) {
-				receiver(0);
+				roots.push_back(0);
 			}
 			return;
 		}
@@ -52,7 +54,7 @@ namespace billiards::shots::math {
 			const double real = eigen_values[i].real();
 			const double imag = eigen_values[i].imag();
 			if (std::abs(imag) < TOLERANCE) {
-				receiver(real);
+				roots.push_back(real);
 			}
 		}
 	}
