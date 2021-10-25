@@ -2,11 +2,16 @@ cmake_minimum_required(VERSION 3.13)
 project(shots_api)
 
 set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_VERBOSE_MAKEFILE on)
+set(CMAKE_VERBOSE_MAKEFILE on)
 
 find_package(Threads REQUIRED)
 find_package(Boost COMPONENTS system REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE HINTS /usr/share/cmake/Modules/)
+
+
+
+message(STATUS "The directory: $ENV{REPOS}")
+
 
 add_executable(
         shots_api
@@ -19,6 +24,8 @@ target_include_directories(
 
 	PUBLIC
 	${PROJECT_SOURCE_DIR}/src
+
+	${PROJECT_SOURCE_DIR}/../billiards-common/src
 	$ENV{REPOS}/billiards-common/src
 )
 
