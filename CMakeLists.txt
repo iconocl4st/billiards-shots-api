@@ -60,7 +60,7 @@ target_link_libraries(
 #		${Boost_SYSTEM_LIBRARY}
 #)
 
-
+# This might have already been executable, without setting the permissions
 install(
 	TARGETS
 		shots_api
