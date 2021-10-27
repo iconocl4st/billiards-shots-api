@@ -61,4 +61,13 @@ target_link_libraries(
 #)
 
 
-install(TARGETS shots_api DESTINATION /app)
+install(
+	TARGETS
+		shots_api
+	DESTINATION
+		/app
+	PERMISSIONS
+		OWNER_WRITE OWNER_READ OWNER_EXECUTE
+		GROUP_READ GROUP_EXECUTE
+		WORLD_READ WORLD_EXECUTE
+)
