@@ -54,7 +54,10 @@ namespace billiards::shots {
 				shot->steps.emplace_back(it.create_step());
 			}
 
+            std::cout << "Considering a shot" << std::endl;
+
 			if (!shot_is_possible(params.table, params.locations, shot)) {
+                std::cout << "Not possible" << std::endl;
 				continue;
 			}
 

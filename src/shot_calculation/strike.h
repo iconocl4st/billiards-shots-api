@@ -26,8 +26,9 @@ namespace billiards::shots {
 		if (status.already_has_target()) {
 			return false;
 		}
+        const auto& next_status = get_next_status(status);
 		if (!get_previous_status(status).assigned_exiting_radius ||
-			!get_next_status(status).already_has_target()) {
+			!next_status.already_has_target()) {
 			return false;
 		}
 		if (!status.already_has_source()) {
@@ -40,7 +41,7 @@ namespace billiards::shots {
 		const auto& object_radius = status.exiting_radius;
 
 		auto target = std::make_shared<GoalPostTarget>();
-		auto& next_target = get_next_status(status).get_target();
+		auto& next_target = next_status.get_target();
 		for (int i = 0; i < 3; i++) {
 			target->posts[i] = billiards::geometry::extend_line(
 				next_target->posts[i],

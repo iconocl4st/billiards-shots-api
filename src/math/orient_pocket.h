@@ -157,7 +157,7 @@ for idx, sol in enumerate(sols):
 		billiards::math::solve_4(
 			c0, c1, c2, c3, c4,
 			0.5 * std::sqrt(v2),
-			[/*r2, v2, av, a2,*/ &sols](const double t) {
+			[&](const double t) {
 //				if (std::abs(t*t*v2 - 2*av*t + a2) < TOLERANCE) {
 //					return;
 //				}

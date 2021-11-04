@@ -73,7 +73,7 @@ namespace billiards::shots {
 		}
 
 		assign_cueing(assignment);
-		return info.is_valid;
+		return info.valid;
 	}
 }
 #endif //IDEA_SHOT_H
