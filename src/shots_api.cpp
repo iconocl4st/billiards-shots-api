@@ -84,11 +84,7 @@ int main(int argc, char **argv) {
 								writer.end_array();
 							}};
 
-						crow::response resp{billiards::json::dump(def_resp)};
-						resp.add_header("Access-Control-Allow-Origin", "*");
-						resp.set_header("Content-Type", "application-json");
-						resp.set_header("Mime-Type", "application-json");
-						return resp;
+						RETURN_RESPONSE(def_resp);
 					} catch (std::exception& e) {
 						std::cout << e.what() << std::endl;
 					}
