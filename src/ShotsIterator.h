@@ -9,7 +9,7 @@
 
 #include "billiards_common/shots/ShotStep.h"
 #include "billiards_common/shots/Locations.h"
-#include "billiards_common/config/Table.h"
+#include "billiards_common/config/TableDimensions.h"
 
 namespace billiards::shots {
 
@@ -125,7 +125,7 @@ namespace billiards::shots {
 
 
 		inline void assign_any(
-			const config::Table& table,
+			const config::PoolConfiguration& table,
 			const layout::Locations& locations,
 			const ShotStepWildCard& wild_card
 		) {
@@ -166,7 +166,7 @@ namespace billiards::shots {
 		}
 
 		inline void assign(
-			const config::Table& table,
+			const config::PoolConfiguration& table,
 			const layout::Locations& locations,
 			const ShotStepWildCard& wild_card
 		) {
@@ -197,7 +197,7 @@ namespace billiards::shots {
 
 		inline
 		void assign(
-			const config::Table& table,
+			const config::PoolConfiguration& table,
 			const layout::Locations& locations,
 			const std::vector<ShotStepWildCard>& wild_cards
 		) {

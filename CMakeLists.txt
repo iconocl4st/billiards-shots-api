@@ -14,9 +14,9 @@ message(STATUS "The directory: $ENV{REPOS}")
 
 
 add_executable(
-        shots_api
+	shots_api
 
-		${CMAKE_CURRENT_SOURCE_DIR}/src/shots_api.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/shots_api.cpp
 )
 
 target_include_directories(

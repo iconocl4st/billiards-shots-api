@@ -9,13 +9,10 @@
 #include <memory>
 
 #include "billiards_common/shots/Locations.h"
-#include "billiards_common/shots/ShotInformation.h"
 #include "billiards_common/shots/shot_is_possible.h"
-
-#include "shot_calculation/shot.h"
+#include "billiards_common/shots/shot_calculation/shot.h"
 
 #include "ShotListParams.h"
-#include "ShotInfoParams.h"
 #include "ShotsIterator.h"
 
 
@@ -23,13 +20,13 @@ namespace billiards::shots {
 
 	[[nodiscard]] inline
 	bool shot_is_possible(
-		const config::Table& table,
+		const config::PoolConfiguration& table,
 		const layout::Locations& locations,
 		const std::shared_ptr<Shot>& shot
 	) {
 		ShotInformation info{*shot};
 		ShotInfoParams params;
-		params.table = table;
+		params.config = table;
 		params.locations = locations;
 		params.shot = *shot;
 		return calculate_shot(params, info) && shot_info_is_possible(table, locations, info);

@@ -7,7 +7,7 @@
 
 #include <optional>
 
-#include "billiards_common/config/Table.h"
+#include "billiards_common/config/TableDimensions.h"
 #include "billiards_common/shots/StepWildCard.h"
 
 namespace billiards::shots {
@@ -15,7 +15,7 @@ namespace billiards::shots {
 	class ShotListParams : public json::Serializable {
 	public:
 		std::optional<double> cut_tolerance;
-		config::Table table;
+		config::PoolConfiguration table;
 		billiards::layout::Locations locations;
 		std::vector<ShotStepWildCard> step_types;
 

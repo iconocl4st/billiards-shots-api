@@ -6,9 +6,14 @@
 #include "billiards_common/3rd_party/crow_all.h"
 #include "billiards_common/utils/crow_common.h"
 #include "billiards_common/config/ports.h"
+
 #include "UniformStreamReceiver.h"
 
+#include "DetailedLayoutParams.h"
+#include "billiards_common/layouts/DetailedLayout.h"
+
 #include "list_shots.h"
+
 
 
 int main(int argc, char **argv) {
@@ -16,6 +21,8 @@ int main(int argc, char **argv) {
 
 	DO_STATUS_ENDPOINT();
 
+
+	// Remove this...
 	CROW_ROUTE(app, "/random/")
 		.methods("POST"_method, "OPTIONS"_method)
 		([](const crow::request& req) {
@@ -115,7 +122,7 @@ int main(int argc, char **argv) {
 
 					billiards::shots::ShotInformation info{params.shot};
 					try {
-						const bool valid = calculate_shot(params, info);
+						const bool valid = billiards::shots::calculate_shot(params, info);
 						if (!valid) {
 							RETURN_ERROR("Shot is not valid");
 						}
@@ -125,6 +132,51 @@ int main(int argc, char **argv) {
 					}
 
 					RETURN_SUCCESS_WITH_DATA("Calculated shot", "shot-info", info);
+				} else {
+					return crow::response(404);
+				}
+			});
+
+	CROW_ROUTE(app, "/layout/")
+		.methods("POST"_method, "OPTIONS"_method)
+			([](const crow::request& req) {
+				if (req.method == "OPTIONS"_method) {
+					HANDLE_OPTIONS;
+				} else if (req.method == "POST"_method) {
+					nlohmann::json value = nlohmann::json::parse(req.body);
+
+					billiards::shots::DetailedLayoutParams params;
+					billiards::json::ParseResult status;
+					if (HAS_OBJECT(value, "params")) {
+						params.parse(value["params"], status);
+					} else {
+						RETURN_ERROR("No params provided");
+					}
+					if (!status.success) {
+						RETURN_ERROR("Unable to parse params");
+					}
+
+					billiards::layout::DetailedLayout layout{params.config, params.layout};
+					billiards::shots::ShotInfoParams info_params;
+					info_params.config = params.config;
+					info_params.locations = params.layout.locations;
+					try {
+						const auto num_shots = params.layout.shots.size();
+						for (auto i=0;i<num_shots; i++) {
+							info_params.shot = params.layout.shots[i].shot;
+							const bool valid = billiards::shots::calculate_shot(
+								info_params, layout.infos[i]);
+							if (!valid) {
+								RETURN_ERROR("A shot was not valid.");
+							}
+						}
+
+					} catch (const std::exception &exc) {
+						std::cerr << exc.what();
+						RETURN_ERROR("Unable to calculate one of the shots");
+					}
+
+					RETURN_SUCCESS_WITH_DATA("Calculated layout", "detailed-layout", layout);
 				} else {
 					return crow::response(404);
 				}
