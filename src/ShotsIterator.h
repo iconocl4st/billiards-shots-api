@@ -135,7 +135,7 @@ namespace billiards::shots {
 					break;
 				}
 				case step_type::POCKET: {
-					children.emplace_back(wild_card.step_type, (int) table.pockets.size());
+					children.emplace_back(wild_card.step_type, config::constants::NUM_POCKETS);
 					break;
 				}
 				case step_type::KISS:
